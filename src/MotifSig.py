@@ -63,7 +63,7 @@ class NullModel:
                             count = np.sum(np.logical_and(time_series >= xi_lower, time_series <= xi_upper))
                         p_Q *= count / len(time_series)
                     elif self.model == "kde":
-                        p_Q *= dist.cdf(xi_upper) - dist.cdf(xi_lower)
+                        p_Q *= dist.integrate_box_1d(xi_lower, xi_upper)
                     elif self.model == "gaussian_theoretical":
                         p_Q *= dist.cdf(xi_upper) - dist.cdf(xi_lower)
                 else:
@@ -84,8 +84,8 @@ class NullModel:
                             count = np.sum(np.logical_and(time_series >= ximinus1_lower, time_series <= ximinus1_upper))
                         denominator = count / len(time_series)
                     elif self.model == "kde":
-                        numerator = dist_bivar.cdf([ximinus1_upper, xi_upper]) - dist_bivar.cdf([ximinus1_lower, xi_lower])
-                        denominator = dist.cdf(ximinus1_upper) - dist.cdf(ximinus1_lower)
+                        numerator = dist_bivar.integrate_box([ximinus1_lower, xi_lower], [ximinus1_upper, xi_upper])
+                        denominator = dist.integrate_box_1d(ximinus1_lower, ximinus1_upper) * dist.integrate_box_1d(xi_lower, xi_upper)
 
                     elif self.model == "gaussian_theoretical":
                         numerator = dist_bivar.cdf([ximinus1_upper, xi_upper]) - dist_bivar.cdf([ximinus1_lower, xi_lower])
@@ -127,17 +127,15 @@ class Motif:
     multivar_sequence = []
     variables = []
     delta_thresholds = []
-    match_indices = []
     n_matches = 0
     motif_probability = 0
     pvalue = 1
 
-    def __init__(self, multivar_sequence, variables, delta_thresholds, match_indices, pattern_probability=0, pvalue=1):
+    def __init__(self, multivar_sequence, variables, delta_thresholds, n_matches, pattern_probability=0, pvalue=1):
         self.multivar_sequence = multivar_sequence
         self.variables = variables
         self.delta_thresholds = delta_thresholds
-        self.match_indices = match_indices
-        self.n_matches = len(match_indices)
+        self.n_matches = n_matches
 
     @staticmethod 
     def bin_prob(n, p, k):
