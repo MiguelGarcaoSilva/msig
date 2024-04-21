@@ -1,1 +1,15 @@
-data/
+data/audio/
+data/populationdensity/
+data/synthetic/
+data/washingmachine/
+results/audio/mp/
+results/audio/mp_indices/
+results/populationdensity/mp/
+results/populationdensity/mp_indices/
+results/synthetic/mp/
+results/synthetic/mp_indices/
+results/washingmachine/mp/
+results/washingmachine/mp_indices/
+
+
+
