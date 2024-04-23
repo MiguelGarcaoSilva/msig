@@ -157,10 +157,14 @@ class Motif:
         return p
     
     def set_significance(self, max_possible_matches, data_n_variables, idd_correction=False):
+    
+        if self.motif_probability == 0:
+            return 0
         pvalue = 0
         if self.n_matches < max_possible_matches:
             #pvalue = sum(self.bin_prob(max_possible_matches, self.motif_probability, j) for j in range(self.n_matches, max_possible_matches+1))  
-            pvalue = sum(binom.pmf(j, max_possible_matches, self.motif_probability) for j in range(self.n_matches, max_possible_matches+1))  
+            #pvalue = sum(binom.pmf(j, max_possible_matches, self.motif_probability) for j in range(self.n_matches, max_possible_matches+1)) #overflow in very small probabilities
+            pvalue = 1 - binom.cdf(self.n_matches-1, max_possible_matches, self.motif_probability)
         else:
             return np.nan
         
