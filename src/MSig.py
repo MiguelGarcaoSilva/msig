@@ -137,14 +137,6 @@ class Motif:
         self.delta_thresholds = delta_thresholds
         self.n_matches = n_matches
 
-    @staticmethod 
-    def bin_prob(n, p, k):
-        if p==1: return 1
-        ctx = dc.Context()
-        arr = math.factorial(n) // math.factorial(k) // math.factorial(n-k)
-        bp = (dc.Decimal(arr) * ctx.power(dc.Decimal(p), dc.Decimal(k)) * ctx.power(dc.Decimal(1-p), dc.Decimal(n-k)))
-        return float(bp) if sys.float_info.min < bp else sys.float_info.min
-    
 
     def set_pattern_probability(self, model, vars_indep=True):
         p = 0
@@ -160,11 +152,15 @@ class Motif:
     
         if self.motif_probability == 0:
             return 0
+        if self.motif_probability == 1:
+            return 1
         pvalue = 0
         if self.n_matches < max_possible_matches:
-            #pvalue = sum(self.bin_prob(max_possible_matches, self.motif_probability, j) for j in range(self.n_matches, max_possible_matches+1))  
-            #pvalue = sum(binom.pmf(j, max_possible_matches, self.motif_probability) for j in range(self.n_matches, max_possible_matches+1)) #overflow in very small probabilities
-            pvalue = 1 - binom.cdf(self.n_matches-1, max_possible_matches, self.motif_probability)
+            for j in range(self.n_matches, max_possible_matches+1):
+                try:
+                    pvalue += binom.pmf(j, max_possible_matches, self.motif_probability)
+                except OverflowError:
+                    pvalue += 0      
         else:
             return np.nan
         
@@ -172,7 +168,7 @@ class Motif:
             pvalue = min(1, pvalue * math.comb(data_n_variables, len(self.variables)))
 
         self.pvalue = pvalue
-        logging.info("p_value = %E (p_pattern = %E)", self.pvalue, self.motif_probability)
+        logging.info("p_value = %.3E (p_pattern = %.3E)", self.pvalue, self.motif_probability)
         return pvalue
     
 
