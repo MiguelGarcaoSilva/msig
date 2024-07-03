@@ -57,9 +57,9 @@ Here is an example of how to use MSig:
 Authors
 -------
 
-- **Miguel G. Silva** - `GitHub <https://github.com/MiguelGarcaoSilva>`
-- **Rui Henriques** - `Webpage <https://web.ist.utl.pt/rmch>`
-- **Sara C. Madeira** - `Website <https://saracmadeira.wordpress.com>`
+- **Miguel G. Silva** - Webpage <https://github.com/MiguelGarcaoSilva>_
+- **Rui Henriques** - Webpage <https://web.ist.utl.pt/rmch>_
+- **Sara C. Madeira** - Webpage <https://saracmadeira.wordpress.com>_
 
 Acknowledgements
 ----------------
