@@ -1,13 +1,15 @@
 MSig
 ===========
 
-MSig is a method designed to evaluate the statistical significance of motifs from multivariate time series data.
+MSig is a a statistical frame for evaluating the statistical significance of motifs with arbitrary multivariate order, possibly encompassing different variable types
+
 
 Highlights
 --------
 
-- **Null Model**: The method uses a null model to estimate the probability of a motif occurring by chance.
-- **Significance**: The method calculates the significance of a motif by comparing the probability of the motif occurring by chance with the probability of the motif occurring in the data.
+- **Pattern probability**: The method uses a null model to estimate the probability of a motif occurring by chance.
+- **Significance**: The method calculates the significance of a motif using binomial tails to compute the probability of a motif recurring a certain number of times within a time series of a given length. 
+
 
 Installation
 ------------
@@ -21,7 +23,7 @@ You can install the package using pip:
 Usage
 -----
 
-Here are some examples of how to use DataCleaner:
+Here are some examples of how to use MSig:
 
 .. code-block:: python
 
@@ -40,7 +42,7 @@ Here are some examples of how to use DataCleaner:
     model = NullModel(data, dtypes=[int, float, str, str],  model="empirical")
 
     # Identify the Motif of length $p=3$
-    # with three matches (at indices 1, 6, and 10) that spans the first, second, and fourth variables
+    # with three matches (at indices 1, 6, and 10) that spans the first, second, and fourth vars
     # satisfying a maximum deviation threshold of $\delta = 0.5$.
     vars = np.array([0,1,3])
     motif_subsequence = data[vars, 1:4]
