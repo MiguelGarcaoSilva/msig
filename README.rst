@@ -57,14 +57,18 @@ Here is an example of how to use MSig:
 Authors
 -------
 
-- **Miguel G. Silva** - `Webpage <https://github.com/MiguelGarcaoSilva>`_
-- **Rui Henriques** - `Webpage <https://web.ist.utl.pt/rmch>`_
-- **Sara C. Madeira** - `Webpage <https://saracmadeira.wordpress.com>`_
+- **Miguel G. Silva** - `<https://github.com/MiguelGarcaoSilva>`_
+- **Rui Henriques** - `<https://web.ist.utl.pt/rmch>`_
+- **Sara C. Madeira** - `<https://saracmadeira.wordpress.com>`_
 
 Acknowledgements
 ----------------
 
 This work was partially funded by Fundação para a Ciência e a Tecnologia (FCT) through LASIGE Research Unit, UIDB/00408/2020 (`https://doi.org/10.54499/UIDB/00408/2020`_), UIDP/00408/2020 (`https://doi.org/10.54499/UIDP/00408/2020`_), INESC-ID Pluriannual, UIDB/50021/2020 (`https://doi.org/10.54499/UIDB/50021/2020`_), and a PhD research scholarship UIBD/153086/2022 to Miguel G. Silva.
+
+.. _https://doi.org/10.54499/UIDB/00408/2020:
+.. _https://doi.org/10.54499/UIDP/00408/2020:
+.. _https://doi.org/10.54499/UIDB/50021/2020:
 
 How to cite
 -----------
