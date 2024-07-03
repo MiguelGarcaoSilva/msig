@@ -7,8 +7,8 @@ MSig is a a statistical frame for evaluating the statistical significance of mot
 Highlights
 --------
 
-- **Pattern probability**: The method uses a null model to estimate the probability of a motif occurring by chance.
-- **Significance**: The method calculates the significance of a motif using binomial tails to compute the probability of a motif recurring a certain number of times within a time series of a given length. 
+- **Pattern probability**: Uses a null model to estimate the probability of a motif occurring by chance.
+- **Significance**: Calculates the significance of a motif using binomial tails to compute the probability of a motif recurring a certain number of times within a time series of a given length. 
 
 
 Installation

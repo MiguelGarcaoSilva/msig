@@ -10,6 +10,9 @@ results/synthetic/mp/
 results/synthetic/mp_indices/
 results/washingmachine/mp/
 results/washingmachine/mp_indices/
+build/
+dist/
+msig.egg-info/
 
 
 
