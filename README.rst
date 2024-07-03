@@ -57,20 +57,27 @@ Here is an example of how to use MSig:
     max_possible_matches = n-p+1 # maximum number of possible matches
     pvalue = motif.set_significance(max_possible_matches, data_n_variables=m, idd_correction=False) 
 
-License
--------
-
-This project is licensed under the MIT License - see the `LICENSE <LICENSE>`_ file for details.
 
 Authors
 -------
 
-- **Miguel G. Silva** - *Initial work* - `github.com/MiguelGarcaoSilva <https://github.com/MiguelGarcaoSilva>`_
+- **Miguel G. Silva** -`github.com/MiguelGarcaoSilva <https://github.com/MiguelGarcaoSilva>`_
+- **Rui Henriques** 
+- **Sara C. Madeira** 
+
+Acknowledgements
+-------
+This work was partially funded by Fundação para a Ciência e a Tecnologia (FCT) through LASIGE Research Unit, UIDB/00408/2020 (\href{https://doi.org/10.54499/UIDB/00408/2020}{https://doi.org/10.54499/UIDB/00408/2020}) and UIDP/00408/2020 (\href{https://doi.org/10.54499/UIDP/00408/2020}{https://doi.org/10.54499/UIDP/00408/2020}), INESC-ID Pluriannual, UIDB/50021/2020 \\ (\href{https://doi.org/10.54499/UIDB/50021/2020}{https://doi.org/10.54499/UIDB/50021/2020}), and a PhD research scholarship UIBD/153086/2022 to Miguel G. Silva.
 
 How to cite
 ---------------
 
 If you use this method in your research, please cite the following paper: Paper available soon.
 
+
+License
+-------
+
+This project is licensed under the MIT License - see the `LICENSE <LICENSE>`_ file for details.
 
 
