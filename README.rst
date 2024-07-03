@@ -1,7 +1,7 @@
 MSig
 ===========
 
-Msig is a method designed to evaluate the statistical significance of motifs from multivariate time series data.
+MSig is a method designed to evaluate the statistical significance of motifs from multivariate time series data.
 
 Highlights
 --------
@@ -33,18 +33,27 @@ Here are some examples of how to use DataCleaner:
     ts2 = [4.3, 4.5, 2.6, 3.0, 3.0, 1.7, 4.9, 2.9, 3.3, 1.9, 4.9, 2.5, 3.1, 1.8, 0.3]
     ts3 = ["A","D", "B", "D", "A", "A", "A" ,"C", "C", "B", "D", "D", "C", "A", "A" ]
     ts4 = ["T", "L", "T", "Z", "Z", "T", "L", "T", "Z", "T", "L", "T", "Z", "L", "L"]
-    multivar_time_series = np.stack([np.asarray(ts1, dtype=int), np.asarray(ts2, dtype=float), np.asarray(ts3, dtype=str), np.asarray(ts4, dtype=str)])
+    data = np.stack([np.asarray(ts1, dtype=int), np.asarray(ts2, dtype=float), np.asarray(ts3, dtype=str), np.asarray(ts4, dtype=str)])
+    m, n = data.shape # data with shape (m=4 x n=15)
 
-    # Create a Null Model
-    model = NullModel(multivar_time_series, dtypes=[int, float, str, str],  model="empirical")
+    # Create the null model 
+    model = NullModel(data, dtypes=[int, float, str, str],  model="empirical")
 
-    # Obtain the Null probability of the motif 
-    motif = Motif(motif_subsequence, vars, np.array([0,0.5,0,0]), 3)
-    p = motif.set_pattern_probability(model, vars_indep=True)
+    # Identify the Motif of length $p=3$
+    # with three matches (at indices 1, 6, and 10) that spans the first, second, and fourth variables
+    # satisfying a maximum deviation threshold of $\delta = 0.5$.
+    vars = np.array([0,1,3])
+    motif_subsequence = data[vars, 1:4]
+    motif_subsequence
+
+    # Obtain the null probability of the motif 
+    motif = Motif(motif_subsequence, vars, np.array([0,0.5,0,0]), n_matches=3)
+    probability = motif.set_pattern_probability(model, vars_indep=True)
 
     # Calculate the significance of the motif
-    max_possible_matches = 13
-    pvalue = motif.set_significance(max_possible_matches, 1, idd_correction=False)
+    p = len(motif_subsequence[0]) # length of the motif
+    max_possible_matches = n-p+1 # maximum number of possible matches
+    pvalue = motif.set_significance(max_possible_matches, data_n_variables=m, idd_correction=False) 
 
 License
 -------
@@ -59,7 +68,7 @@ Authors
 How to cite
 ---------------
 
-If you use this method in your research, please cite the following paper: TODO:
+If you use this method in your research, please cite the following paper: Paper available soon.
 
 
 
