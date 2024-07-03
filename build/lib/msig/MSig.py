@@ -7,15 +7,29 @@ logger = logging.getLogger(__name__)
 
 class NullModel:
     data = None
+    dtypes = None
     pre_computed_distribution = {}
     pre_computed_bivariate_distribution = {}
     model = None
 
-    def __init__(self, data, model="empirical_dist"):
+    def __init__(self, data, dtypes, model="empirical"):
         self.data = data
+        self.dtypes = dtypes
         self.model = model
 
+        #if any of dtypes is not float, if model is not empirical, raise error
+        if any([dtype != float for dtype in dtypes]) and model != "empirical":
+            raise ValueError("Invalid data type for model %s" % model)
+
         for var_index, y_j in enumerate(data):
+            try:
+                y_j = np.array(y_j, dtype=dtypes[var_index])
+            except ValueError:
+                raise ValueError("Invalid data type for variable %d" % var_index)
+
+            if self.model == "empirical":
+                continue
+    
             pairs = []
             for i in range(len(y_j)):
                 if i < len(y_j)-1:
@@ -30,9 +44,6 @@ class NullModel:
             elif self.model == "gaussian_theoretical":
                 self.pre_computed_distribution[var_index] = norm(np.mean(y_j), np.std(y_j))
                 self.pre_computed_bivariate_distribution[var_index] = multivariate_normal(means, np.cov(pairs))
-
-            elif self.model == "empirical":
-                pass
             else:
                 raise ValueError("Invalid model")
 
@@ -40,23 +51,30 @@ class NullModel:
     def vars_indep_time_markov(self, motif_subsequence, variables, delta_thresholds):
         p_Q = 1
         # for variable j in variables of subsequence J:
-        for j, subsequence in enumerate(motif_subsequence):   
+        for j, subsequence in enumerate(motif_subsequence):
             var_index = variables[j]
             delta = delta_thresholds[var_index]
             p_Q_j = 1
-            time_series = self.data[var_index]
+            time_series = self.data[var_index].astype(self.dtypes[j])
+            try:
+                subsequence = subsequence.astype(self.dtypes[j])
+            except ValueError:
+                raise ValueError("Invalid data type for variable %d" % var_index)
+
             if self.model != "empirical":
                 dist = self.pre_computed_distribution[var_index]
                 dist_bivar = self.pre_computed_bivariate_distribution[var_index]
 
             # P(Y_j = x_0^j)
-            xi_lower, xi_upper = subsequence[0] - delta, subsequence[0] + delta
-            ximinus1_lower, ximinus1_upper = subsequence[0-1] - delta, subsequence[0-1] + delta
+            if delta != 0:
+                xi_lower, xi_upper = subsequence[0] - delta, subsequence[0] + delta
             if self.model == "empirical":
                 if delta == 0:
-                    count = np.sum(time_series == subsequence[i])
+                    count = np.sum(time_series == subsequence[0])
+                    logging.debug(count)
                 else:
                     count = np.sum(np.logical_and(time_series >= xi_lower, time_series <= xi_upper))
+                    logging.debug(count)
                 p_Q_j *= count / len(time_series)
             elif self.model == "kde":
                 p_Q_j *= dist.integrate_box_1d(xi_lower, xi_upper)
@@ -65,19 +83,22 @@ class NullModel:
 
             #i starts 1 until p (length of subsequence)
             for i in range(1, len(subsequence)):
-                xi_lower, xi_upper = subsequence[i] - delta, subsequence[i] + delta
-                ximinus1_lower, ximinus1_upper = subsequence[i-1] - delta, subsequence[i-1] + delta
+                if delta != 0:
+                    xi_lower, xi_upper = subsequence[i] - delta, subsequence[i] + delta
+                    ximinus1_lower, ximinus1_upper = subsequence[i-1] - delta, subsequence[i-1] + delta
 
                 #P(A|B) = P(A ^ B)/P(B)
                 #P(5|3) = p(3^5)/P(3)
                 if self.model == "empirical":
                     if delta == 0:
                         count = np.sum((time_series[:-1] == subsequence[i-1]) & (time_series[1:] == subsequence[i]))
+                        logging.debug(count)
                     else:
                         count = np.sum(
                             (np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper)) &
                             (np.logical_and(time_series[1:] >= xi_lower, time_series[1:] <= xi_upper))
                         )
+                        logging.debug(count)
                     numerator = count / (len(time_series) - 1)
                     if delta == 0:
                         count = np.sum(time_series == subsequence[i-1])
@@ -94,6 +115,7 @@ class NullModel:
 
                 p_Q_j *= min(1, numerator / denominator)
 
+            logger.debug(subsequence)
             logger.debug("p_Q_j = %E", p_Q_j)
             p_Q *= p_Q_j
 

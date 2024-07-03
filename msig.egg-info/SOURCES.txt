@@ -1,0 +1,10 @@
+LICENSE
+README.md
+setup.py
+msig/MSig.py
+msig/__init__.py
+msig.egg-info/PKG-INFO
+msig.egg-info/SOURCES.txt
+msig.egg-info/dependency_links.txt
+msig.egg-info/requires.txt
+msig.egg-info/top_level.txt
