@@ -1,7 +1,7 @@
 MSig
 ===========
 
-MSig is a a statistical frame for evaluating the statistical significance of motifs with arbitrary multivariate order, possibly encompassing different variable types
+MSig is a statistical frame for evaluating the statistical significance of motifs with arbitrary multivariate order, possibly encompassing different variable types.
 
 
 Highlights
@@ -23,7 +23,7 @@ You can install the package using pip:
 Usage
 -----
 
-Here are some examples of how to use MSig:
+Here is an example of how to use MSig:
 
 .. code-block:: python
 
@@ -31,9 +31,9 @@ Here are some examples of how to use MSig:
     import numpy as np
 
     # Load your data
-    ts1 = [1,3,3,5,5,2,3,3,5,5,3,3,5,4,4]
+    ts1 = [1, 3, 3, 5, 5, 2, 3, 3, 5, 5, 3, 3, 5, 4, 4]
     ts2 = [4.3, 4.5, 2.6, 3.0, 3.0, 1.7, 4.9, 2.9, 3.3, 1.9, 4.9, 2.5, 3.1, 1.8, 0.3]
-    ts3 = ["A","D", "B", "D", "A", "A", "A" ,"C", "C", "B", "D", "D", "C", "A", "A" ]
+    ts3 = ["A", "D", "B", "D", "A", "A", "A" ,"C", "C", "B", "D", "D", "C", "A", "A"]
     ts4 = ["T", "L", "T", "Z", "Z", "T", "L", "T", "Z", "T", "L", "T", "Z", "L", "L"]
     data = np.stack([np.asarray(ts1, dtype=int), np.asarray(ts2, dtype=float), np.asarray(ts3, dtype=str), np.asarray(ts4, dtype=str)])
     m, n = data.shape # data with shape (m=4 x n=15)
