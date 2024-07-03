@@ -67,7 +67,7 @@ Authors
 
 Acknowledgements
 -------
-This work was partially funded by Fundação para a Ciência e a Tecnologia (FCT) through LASIGE Research Unit, UIDB/00408/2020 (\href{https://doi.org/10.54499/UIDB/00408/2020}{https://doi.org/10.54499/UIDB/00408/2020}) and UIDP/00408/2020 (\href{https://doi.org/10.54499/UIDP/00408/2020}{https://doi.org/10.54499/UIDP/00408/2020}), INESC-ID Pluriannual, UIDB/50021/2020 \\ (\href{https://doi.org/10.54499/UIDB/50021/2020}{https://doi.org/10.54499/UIDB/50021/2020}), and a PhD research scholarship UIBD/153086/2022 to Miguel G. Silva.
+This work was partially funded by Fundação para a Ciência e a Tecnologia (FCT) through LASIGE Research Unit, UIDB/00408/2020 (`https://doi.org/10.54499/UIDB/00408/2020 <https://doi.org/10.54499/UIDB/00408/2020>`_) and UIDP/00408/2020 (`https://doi.org/10.54499/UIDP/00408/2020 <https:
 
 How to cite
 ---------------
