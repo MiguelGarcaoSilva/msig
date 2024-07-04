@@ -13,6 +13,7 @@ results/washingmachine/mp_indices/
 build/
 dist/
 msig.egg-info/
+msig/__pycache__/
 
 
 
