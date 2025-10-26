@@ -188,9 +188,9 @@ def main():
     # Compute matrix profiles
     compute_matrix_profiles(X, subsequence_lengths, normalize, include, results_dir)
     
-    # Define discovery modes: liberal, moderate, and conservative
+    # Define discovery modes: relaxed, moderate, and conservative
     # These modes systematically explore the trade-off between sensitivity and specificity
-    # Liberal: High sensitivity - discover all potential patterns (upper bound)
+    # Relaxed: High sensitivity - discover all potential patterns (upper bound)
     # Moderate: Balanced - practical recommendation for real use cases
     # Conservative: High specificity - minimize false positives (lower bound)
     # Each mode controls quality vs quantity of discovered motifs through 5 parameters:
@@ -200,13 +200,13 @@ def main():
     # - max_matches: max occurrences per motif (computational limit)
     # - max_motifs: max total motifs (computational limit)
     modes = {
-        'liberal': {
+        'relaxed': {
             'min_neighbors': 1,           # Accept even single matches
             'max_distance_factor': 1.0,   # D_max = sqrt(s) * delta (most permissive)
             'cutoffs': np.inf,            # No per-dimension filtering
             'max_matches': 99999,         # No practical limit
             'max_motifs': 99999,          # No practical limit
-            'description': 'Liberal: Maximum sensitivity, accept all potential patterns'
+            'description': 'Relaxed: Maximum sensitivity, accept all potential patterns'
         },
         'moderate': {
             'min_neighbors': 2,           # Require at least 3 matches (excludes singletons)
