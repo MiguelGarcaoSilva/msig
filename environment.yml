@@ -1,0 +1,31 @@
+name: msig
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.10
+  - numpy>=1.20
+  - scipy>=1.7
+  
+  # Optional: For reproducing experiments
+  # Uncomment these lines if you want to run case studies
+  # - pandas>=1.3
+  # - matplotlib>=3.4
+  # - librosa>=0.9
+  # - statsmodels>=0.13
+  # - jinja2>=3.0
+  
+  # Development tools (optional)
+  # - pytest>=7.0
+  # - pytest-cov>=3.0
+  # - flake8>=4.0
+  # - black>=22.0
+  # - mypy>=0.950
+  # - isort>=5.10
+  # - ipykernel>=6.0
+  
+  # Install via pip (not available in conda)
+  - pip
+  - pip:
+    - stumpy>=1.11  # Uncomment if running experiments
+    # - git+https://github.com/patrickzib/leitmotifs@main  # LAMA (experiments only)
