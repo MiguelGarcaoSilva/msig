@@ -411,8 +411,8 @@ def compute_motif_statistics_lama(
 def main():
     # Paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, "../data/washingmachine/main_readings.csv")
-    results_dir = os.path.join(script_dir, "../results/washingmachine/lama_iterative")
+    data_path = os.path.join(script_dir, "../../data/washingmachine/main_readings.csv")
+    results_dir = os.path.join(script_dir, "../../results/washingmachine/lama_iterative")
     os.makedirs(results_dir, exist_ok=True)
     
     # Load data

@@ -485,8 +485,8 @@ def main():
     Main execution: Run LAMA-based motif discovery on audio data.
     """
     # Configuration
-    audio_path = '../data/audio/imblue.mp3'
-    output_dir = '../results/audio/lama_iterative'
+    audio_path = '../../data/audio/imblue.mp3'
+    output_dir = '../../results/audio/lama_iterative'
     os.makedirs(output_dir, exist_ok=True)
     
     # Load data

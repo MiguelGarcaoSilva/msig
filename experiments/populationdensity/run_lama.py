@@ -270,8 +270,8 @@ def compute_motif_statistics_lama(
 def main():
     # Paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.abspath(os.path.join(script_dir, "../data/populationdensity/hourly_saodomingosbenfica.csv"))
-    results_dir = os.path.abspath(os.path.join(script_dir, "../results/populationdensity/lama_iterative"))
+    data_path = os.path.abspath(os.path.join(script_dir, "../../data/populationdensity/hourly_saodomingosbenfica.csv"))
+    results_dir = os.path.abspath(os.path.join(script_dir, "../../results/populationdensity/lama_iterative"))
     os.makedirs(results_dir, exist_ok=True)
     
     # Load data
