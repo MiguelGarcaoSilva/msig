@@ -49,21 +49,38 @@ pip install -e ".[experiments]"
 from msig import Motif, NullModel
 import numpy as np
 
-# Your multivariate time series (m variables × n time points)
-data = np.array([...])
+# Create sample multivariate time series (3 sensors × 100 time points)
+np.random.seed(42)
+t = np.linspace(0, 10, 100)
+sensor1 = 10 + 2 * np.sin(2 * np.pi * t) + np.random.randn(100) * 0.5
+sensor2 = 5 + 1.5 * np.cos(2 * np.pi * t) + np.random.randn(100) * 0.3
+sensor3 = 15 + 3 * np.sin(2 * np.pi * t + np.pi/4) + np.random.randn(100) * 0.7
+data = np.stack([sensor1, sensor2, sensor3])
 
-# Create null model
-model = NullModel(data, dtypes=[float, float], model="empirical")
+# Create null model (assumes Gaussian distributions)
+model = NullModel(data, dtypes=[float, float, float], model="gaussian_theoretical")
 
-# Test motif significance
-motif = Motif(pattern, variables, thresholds, n_matches)
-probability = motif.set_pattern_probability(model, vars_indep=True)
-pvalue = motif.set_significance(max_possible_matches, n_variables)
+# Define a motif: length 10, all 3 sensors, 8 occurrences
+motif_length = 10
+motif_pattern = data[:, 5:15]  # Extract pattern from position 5
+motif_vars = np.array([0, 1, 2])  # Use all sensors
+delta_thresholds = np.array([0.3, 0.3, 0.3])  # Tolerance for matching
 
-print(f"p-value: {pvalue:.2e}")
+# Create motif and test significance
+motif = Motif(motif_pattern, motif_vars, delta_thresholds, n_matches=8)
+prob = motif.set_pattern_probability(model, vars_indep=True)
+pvalue = motif.set_significance(
+    max_possible_matches=100 - motif_length + 1,
+    data_n_variables=3,
+    idd_correction=False
+)
+
+print(f"Pattern probability: {prob:.6e}")
+print(f"P-value: {pvalue:.6e}")
+print(f"Significant at α=0.01? {pvalue <= 0.01}")
 ```
 
-See the `examples/` folder for complete examples (`simple_example.py` and `example.ipynb`).
+See the `examples/` folder for more examples (`simple_example.py` and `example.ipynb`).
 
 ## Running Experiments
 
