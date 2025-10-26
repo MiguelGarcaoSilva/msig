@@ -41,7 +41,9 @@ cd msig
 pip install -e ".[experiments]"
 ```
 
-**Note**: MOMENTI has platform-specific dependencies and may not install on macOS.
+**Notes**: 
+- MOMENTI has platform-specific dependencies and may not install on macOS.
+- Audio experiments require **ffmpeg** for MP3 processing: `brew install ffmpeg` (macOS) or `apt-get install ffmpeg` (Linux)
 
 ## Quick Start
 
