@@ -4,12 +4,13 @@ STUMPY-based Case Study for Washing Machine Data
 Exhaustive motif discovery using matrix profile approach
 """
 
+import sys
+import os
 import numpy as np
 import pandas as pd
 import stumpy
 import math
 import logging
-import os
 from typing import Tuple
 
 # Add parent directory to path for msig import

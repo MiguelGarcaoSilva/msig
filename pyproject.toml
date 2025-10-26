@@ -38,6 +38,7 @@ experiments = [
     "statsmodels>=0.13.0",
     "jinja2>=3.0.0",
     "leitmotif",  # LAMA motif discovery
+    "psutil>=5.8.0",  # Required by leitmotif
     # MOMENTI must be installed separately: pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs
 ]
 
