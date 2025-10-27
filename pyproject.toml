@@ -1,6 +1,6 @@
 [project]
 name = "msig"
-version = "0.1.2"
+version = "0.1.3"
 description = "Statistical Significance Criteria for Multivariate Time Series Motifs"
 readme = "README.md"
 license = "MIT"
@@ -58,7 +58,6 @@ Homepage = "https://github.com/MiguelGarcaoSilva/msig"
 Repository = "https://github.com/MiguelGarcaoSilva/msig"
 Documentation = "https://github.com/MiguelGarcaoSilva/msig#readme"
 "Bug Tracker" = "https://github.com/MiguelGarcaoSilva/msig/issues"
-Changelog = "https://github.com/MiguelGarcaoSilva/msig/blob/main/CHANGELOG.md"
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
