@@ -240,7 +240,7 @@ def compute_motif_statistics_lama(
         # Calculate delta threshold
         max_distance = math.sqrt(s) * average_delta
         max_delta = math.sqrt(max_distance**2 / s)
-        delta_thresholds = [max_delta] * n_vars
+        delta_thresholds = [max_delta] * len(dimensions)
         
         # Compute significance
         motif_obj = Motif(multivar_subsequence, dimensions, delta_thresholds, n_matches)

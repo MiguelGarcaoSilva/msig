@@ -158,7 +158,7 @@ def compute_motif_statistics_momenti(
         
         # Calculate delta threshold from distance
         max_delta = math.sqrt(distance**2 / m) if distance > 0 else 0.1
-        delta_thresholds = [max_delta] * n_vars  # Must be length n_vars, not len(dimensions)
+        delta_thresholds = [max_delta] * len(dimensions)  # One threshold per variable in motif
         
         # Compute significance (with error handling for MSig issues)
         try:

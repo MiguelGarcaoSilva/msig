@@ -167,7 +167,7 @@ def compute_motif_statistics_stumpy(
         
         assert max_allowed_dist is not None  # Type narrowing for Pylance
         max_delta = math.sqrt(max_allowed_dist**2 / s)
-        delta_thresholds = [max_delta] * n_vars
+        delta_thresholds = [max_delta] * len(dimensions)
         
         # Compute significance
         motif_obj = Motif(list(multivar_subsequence), dimensions, delta_thresholds, len(indices))

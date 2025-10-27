@@ -399,7 +399,7 @@ def compute_motif_statistics_lama(
         # Calculate delta threshold
         max_distance = math.sqrt(s) * average_delta
         max_delta = math.sqrt(max_distance**2 / s)
-        delta_thresholds = [max_delta] * n_vars
+        delta_thresholds = [max_delta] * len(dimensions)
         
         # Compute significance
         motif_obj = Motif(multivar_subsequence, dimensions, delta_thresholds, n_matches)
@@ -588,24 +588,6 @@ def main():
         logger.info("SUMMARY TABLE")
         logger.info("="*70)
         print(summary_table.to_string(index=False))
-        
-        # Print comparison with STUMPY (if available)
-        stumpy_file = '../results/audio/table_motifs_min_neighbors=1_max_distance=[0.6708203932499369, 0.9486832980505138, 1.643167672515498, 2.1213203435596424]_cutoffs=inf_max_matches=99999_max_motifs=99999.csv'
-        if os.path.exists(stumpy_file):
-            stumpy_stats = pd.read_csv(stumpy_file)
-            logger.info("\n" + "="*70)
-            logger.info("COMPARISON: LAMA vs STUMPY")
-            logger.info("="*70)
-            for s in subsequence_lengths:
-                if s in all_stats["s"].values and s in stumpy_stats["s"].values:
-                    lama_count = len(all_stats[all_stats["s"] == s])
-                    stumpy_count = len(stumpy_stats[stumpy_stats["s"] == s])
-                    lama_sig = np.sum(all_stats[all_stats["s"] == s]["p-value"] <= 0.01)
-                    stumpy_sig = np.sum(stumpy_stats[stumpy_stats["s"] == s]["p-value"] <= 0.01)
-                    
-                    logger.info(f"\ns={s}:")
-                    logger.info(f"  LAMA:   {lama_count:3d} motifs, {lama_sig:3d} significant ({lama_sig/lama_count*100:.1f}%)")
-                    logger.info(f"  STUMPY: {stumpy_count:3d} motifs, {stumpy_sig:3d} significant ({stumpy_sig/stumpy_count*100:.1f}%)")
     
     logger.info("\n" + "="*70)
     logger.info("COMPLETE")

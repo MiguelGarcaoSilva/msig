@@ -44,7 +44,7 @@ class TestNullModel:
         """Test that KDE with non-float data raises error."""
         data = np.array([[1, 2, 3]], dtype=int)
         
-        with pytest.raises(ValueError, match="Invalid data type"):
+        with pytest.raises(ValueError, match="requires all variables to be float type"):
             NullModel(data, dtypes=[int], model="kde")
 
     def test_gaussian_model_creation(self):
@@ -106,12 +106,14 @@ class TestMotif:
         assert 0 <= pvalue <= 1
         assert motif.pvalue == pvalue
 
-    def test_hochberg_correction(self):
-        """Test Hochberg critical value calculation."""
+    def test_benjamini_hochberg_fdr(self):
+        """Test Benjamini-Hochberg FDR correction (module-level function)."""
+        from msig import benjamini_hochberg_fdr
+        
         pvalues = np.array([0.001, 0.01, 0.02, 0.05, 0.1])
         alpha = 0.05
         
-        critical = NullModel.hochberg_critical_value(pvalues, alpha)
+        critical = benjamini_hochberg_fdr(pvalues, alpha)
         
         assert 0 <= critical <= alpha
         assert isinstance(critical, float)
@@ -138,12 +140,12 @@ class TestMotif:
 class TestEdgeCases:
     """Tests for edge cases and boundary conditions."""
 
-    def test_single_timepoint(self):
-        """Test with minimal data."""
-        data = np.array([[1.0]])
+    def test_minimum_timepoints(self):
+        """Test with minimum required data (2 time points)."""
+        data = np.array([[1.0, 2.0]])
         model = NullModel(data, dtypes=[float], model="empirical")
         
-        assert model.data.shape == (1, 1)
+        assert model.data.shape == (1, 2)
 
     def test_zero_probability_pattern(self):
         """Test pattern with zero probability."""

@@ -8,7 +8,7 @@ MSig is a statistical framework for evaluating the significance of motifs in mul
 - **Significance testing**: Calculates motif significance based on binomial tails to assess motif recurrence
 - **Flexible null models**: Supports empirical, KDE, and Gaussian null models
 - **Mixed data types**: Handles continuous (float), discrete (int), and categorical (str) variables
-- **Multiple testing correction**: Includes Hochberg correction for controlling family-wise error rate
+- **Multiple testing correction**: Includes Benjamini-Hochberg FDR correction for controlling false discovery rate
 
 ## Installation
 
@@ -55,10 +55,11 @@ multivar_sequence = data[vars, 1:4]
 
 # Create motif object (3 observed matches)
 # Tolerance: exact match for discrete/categorical (δ=0), δ=0.5 for continuous
+# Need 3 thresholds (one per variable in motif): [var0=int, var1=float, var3=str]
 motif = Motif(
     multivar_sequence=multivar_sequence,
     variables=vars,
-    delta_thresholds=np.array([0, 0.5, 0, 0]),
+    delta_thresholds=np.array([0, 0.5, 0]),
     n_matches=3
 )
 

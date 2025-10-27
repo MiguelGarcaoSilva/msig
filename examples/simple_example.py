@@ -52,8 +52,9 @@ def example_multivariate_time_series():
     for i, var_idx in enumerate(motif_vars):
         print(f"  Variable {var_idx}: {motif_pattern[i]}")
     
-    # Tolerance: exact match for discrete, δ=0.5 for continuous
-    delta_thresholds = np.array([0, 0.5, 0, 0])
+    # Tolerance: exact match for discrete (0), δ=0.5 for continuous
+    # Need one threshold per variable in the motif: [var0, var1, var3]
+    delta_thresholds = np.array([0, 0.5, 0])  # int, float, str
     
     # Create motif object (3 observed matches)
     motif = Motif(
@@ -140,10 +141,10 @@ def example_continuous_data():
 
 
 def example_hochberg_correction():
-    """Example 3: Multiple testing with Hochberg correction."""
+    """Example 3: Multiple testing with Benjamini-Hochberg FDR correction."""
     
     print("\n" + "=" * 70)
-    print("EXAMPLE 3: Multiple Testing Correction (Hochberg)")
+    print("EXAMPLE 3: Multiple Testing Correction (Benjamini-Hochberg FDR)")
     print("=" * 70)
     
     # Simulate discovering multiple motifs with different p-values
@@ -154,17 +155,18 @@ def example_hochberg_correction():
     for i, p in enumerate(pvalues, 1):
         print(f"  Motif {i}: p = {p:.4f}")
     
-    # Compute Hochberg critical value
-    critical_value = NullModel.hochberg_critical_value(pvalues, alpha)
+    # Compute Benjamini-Hochberg critical value
+    from msig import benjamini_hochberg_fdr
+    critical_value = benjamini_hochberg_fdr(pvalues, alpha)
     
-    print(f"\nHochberg correction (α = {alpha}):")
+    print(f"\nBenjamini-Hochberg FDR correction (α = {alpha}):")
     print(f"  Critical value: {critical_value:.6f}")
     
     # Determine which motifs are significant
     significant = pvalues <= critical_value
     n_significant = np.sum(significant)
     
-    print(f"\nSignificant motifs after correction:")
+    print(f"\nSignificant motifs after FDR correction:")
     for i, (p, sig) in enumerate(zip(pvalues, significant), 1):
         status = "✓ SIGNIFICANT" if sig else "  not significant"
         print(f"  Motif {i}: p = {p:.4f} {status}")
