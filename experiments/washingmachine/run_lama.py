@@ -13,7 +13,7 @@ import os
 
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from msig import Motif, NullModel
+from msig import Motif, NullModel, benjamini_hochberg_fdr
 
 # Add leitmotifs to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../leitmotifs')))
@@ -331,7 +331,7 @@ def search_leitmotifs_all_elbows(
 def compute_motif_statistics_lama(
     motifs: List[Dict],
     data: np.ndarray,
-    m: int,
+    s: int,
     normalize: bool = True,
     average_delta: float = 0.3
 ) -> pd.DataFrame:
@@ -341,7 +341,7 @@ def compute_motif_statistics_lama(
     logger.info(f"\nComputing statistics for {len(motifs)} motifs")
     
     stats_table = pd.DataFrame(columns=[
-        "ID", "k", "Features", "m", "#Matches", "Indices", 
+        "ID", "k", "Features", "s", "#Matches", "Indices", 
         "extent", "P", "p-value"
     ])
     
@@ -358,8 +358,8 @@ def compute_motif_statistics_lama(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(m / 2)
-    max_possible_matches = int(np.floor((n_time - m) / r) + 1)
+    r = np.ceil(s / 2)
+    max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_idx, motif_info in enumerate(motifs):
         indices = motif_info['indices']
@@ -486,7 +486,7 @@ def main():
             
             # Add Hochberg correction (standard BH uses ≤)
             p_values = stats["p-value"].to_numpy()
-            critical_value = NullModel.hochberg_critical_value(p_values, 0.05)
+            critical_value = benjamini_hochberg_fdr(p_values, 0.05)
             sig_hochberg = stats["p-value"] <= critical_value
             stats["Sig_Hochberg"] = sig_hochberg
             
