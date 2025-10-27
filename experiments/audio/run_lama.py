@@ -17,7 +17,7 @@ import matplotlib.dates as mdates
 import math
 import logging
 from typing import List, Dict, Tuple
-from msig import Motif, NullModel
+from msig import Motif, NullModel, benjamini_hochberg_fdr
 
 # Add leitmotifs to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../leitmotifs'))
@@ -339,7 +339,7 @@ def search_leitmotifs_all_elbows(
 def compute_motif_statistics_lama(
     motifs: List[Dict],
     data: np.ndarray,
-    m: int,
+    s: int,
     normalize: bool = True,
     average_delta: float = 0.3
 ) -> pd.DataFrame:
@@ -349,7 +349,7 @@ def compute_motif_statistics_lama(
     Parameters:
         motifs: List of motif dictionaries from search_leitmotifs_multiple
         data: Original time series data (n_vars, n_time)
-        m: Motif length
+        s: Motif length
         normalize: Whether to z-normalize the data
         average_delta: Parameter for delta threshold calculation
     
@@ -359,7 +359,7 @@ def compute_motif_statistics_lama(
     logger.info(f"\nComputing statistics for {len(motifs)} motifs")
     
     stats_table = pd.DataFrame(columns=[
-        "ID", "k", "Features", "m", "#Matches", "Indices", 
+        "ID", "k", "Features", "s", "#Matches", "Indices", 
         "extent", "P", "p-value"
     ])
     
@@ -376,8 +376,8 @@ def compute_motif_statistics_lama(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(m / 2)
-    max_possible_matches = int(np.floor((n_time - m) / r) + 1)
+    r = np.ceil(s / 2)
+    max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_idx, motif_info in enumerate(motifs):
         indices = motif_info['indices']
@@ -434,14 +434,14 @@ def create_summary_table(stats_table: pd.DataFrame) -> pd.DataFrame:
     subsequence_lengths = stats_table["s"].unique()
     
     summary_cols = [
-        "m", "#motifs", "avg_n_matches", "avg_n_features", 
+        "s", "#motifs", "avg_n_matches", "avg_n_features", 
         "median_probability", "median_pvalue", "#sig_motifs(≤0.01)", 
         "significant", "#sig_hochberg"
     ]
     summary_table = pd.DataFrame(columns=summary_cols)
     
     for s in subsequence_lengths:
-        table = stats_table[stats_table["s"] == m]
+        table = stats_table[stats_table["s"] == s]
         n_motifs = table.shape[0]
         
         if n_motifs == 0:
@@ -451,7 +451,7 @@ def create_summary_table(stats_table: pd.DataFrame) -> pd.DataFrame:
         
         # Hochberg correction (standard BH uses ≤)
         p_values = table["p-value"].to_numpy()
-        critical_value = NullModel.hochberg_critical_value(p_values, 0.05)
+        critical_value = benjamini_hochberg_fdr(p_values, 0.05)
         sig = table["p-value"] <= critical_value
         n_sig_motifs_hochberg = sig.sum()
         

@@ -15,7 +15,7 @@ from typing import Tuple
 
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from msig import Motif, NullModel
+from msig import Motif, NullModel, benjamini_hochberg_fdr
 
 logging.basicConfig(
     level=logging.INFO,
@@ -323,7 +323,7 @@ def main():
             
             # Add Hochberg correction (standard BH uses ≤)
             p_values = stats["p-value"].to_numpy()
-            critical_value = NullModel.hochberg_critical_value(p_values, 0.05)
+            critical_value = benjamini_hochberg_fdr(p_values, 0.05)
             sig_hochberg = stats["p-value"] <= critical_value
             stats["Sig_Hochberg"] = sig_hochberg
             
