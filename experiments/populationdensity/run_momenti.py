@@ -14,7 +14,7 @@ from typing import Tuple
 
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from msig import Motif, NullModel
+from msig import Motif, NullModel, benjamini_hochberg_fdr
 
 # Add MOMENTI to path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -63,7 +63,7 @@ def load_population_data(csv_path: str) -> Tuple[np.ndarray, pd.DataFrame]:
 def compute_motif_statistics_momenti(
     motifs: list,
     data: np.ndarray,
-    m: int,
+    s: int,
     normalize: bool = True
 ) -> pd.DataFrame:
     """
@@ -92,8 +92,8 @@ def compute_motif_statistics_momenti(
     model_empirical = NullModel(data_norm_t, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(m / 2)
-    max_possible_matches = int(np.floor((n_time - m) / r) + 1)
+    r = np.ceil(s / 2)
+    max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_data in motifs:
         # Robust unpacking: MOMENTI sometimes returns nested tuples/lists like
@@ -152,10 +152,10 @@ def compute_motif_statistics_momenti(
         
         # Extract pattern from first occurrence
         pattern_pos = int(indices[0])
-        multivar_subsequence = data_norm_t[dimensions, pattern_pos:pattern_pos + m]
+        multivar_subsequence = data_norm_t[dimensions, pattern_pos:pattern_pos + s]
         
         # Calculate delta threshold from distance
-        max_delta = math.sqrt(distance**2 / m) if distance > 0 else 0.1
+        max_delta = math.sqrt(distance**2 / s) if distance > 0 else 0.1
         delta_thresholds = [max_delta] * len(dimensions)  # One threshold per variable in motif
         
         # Compute significance (with error handling for MSig issues)
@@ -268,7 +268,7 @@ def main():
             
             # Add Hochberg correction (standard BH uses ≤)
             p_values = stats["p-value"].to_numpy()
-            critical_value = NullModel.hochberg_critical_value(p_values, 0.05)
+            critical_value = benjamini_hochberg_fdr(p_values, 0.05)
             sig_hochberg = stats["p-value"] <= critical_value
             stats["Sig_Hochberg"] = sig_hochberg
             
