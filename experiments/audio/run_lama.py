@@ -549,7 +549,7 @@ def main():
             stats_table = compute_motif_statistics_lama(
                 motifs=motifs,
                 data=X,
-                s={s},
+                s=s,
                 normalize=normalize,
                 average_delta=average_delta
             )
