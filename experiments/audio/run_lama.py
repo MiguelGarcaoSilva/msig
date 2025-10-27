@@ -561,7 +561,7 @@ def main():
             # Add Hochberg significance column
             if len(stats_table) > 0:
                 p_values = stats_table["p-value"].to_numpy()
-                critical_value = NullModel.hochberg_critical_value(p_values, 0.05)
+                critical_value = benjamini_hochberg_fdr(p_values, 0.05)
                 sig = stats_table["p-value"] <= critical_value  # Standard BH uses ≤
                 stats_table["Sig_Hochber"] = sig
                 
