@@ -484,9 +484,10 @@ def main():
     """
     Main execution: Run LAMA-based motif discovery on audio data.
     """
-    # Configuration
-    audio_path = '../../data/audio/imblue.mp3'
-    output_dir = '../../results/audio/lama_iterative'
+    # Configuration - use absolute path based on script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    audio_path = os.path.join(script_dir, '../../data/audio/imblue.mp3')
+    output_dir = os.path.join(script_dir, '../../results/audio/lama_iterative')
     os.makedirs(output_dir, exist_ok=True)
     
     # Load data
@@ -512,12 +513,12 @@ def main():
     
     for s in subsequence_lengths:
         logger.info(f"\n{'='*70}")
-        logger.info(f"Processing motif length s={s} ({m*hop_length/sr:.2f} seconds)")
+        logger.info(f"Processing motif length s={s} ({s*hop_length/sr:.2f} seconds)")
         logger.info(f"{'='*70}")
         
         # Determine k_max (same logic as in leitmotifs_multiple notebook)
         N = X.shape[1]
-        theo_max = int(np.floor((N - m) / (s / 2)) + 1)
+        theo_max = int(np.floor((N - s) / (s / 2)) + 1)
         k_max_adjusted = max(2, min(99, theo_max))
         
         # Run for EACH dimensionality
