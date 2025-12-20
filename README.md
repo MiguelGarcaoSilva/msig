@@ -16,7 +16,7 @@ pip install msig
 pip install "msig[experiments]"
 ```
 
-### From source with uv
+### From source with uv (recommended)
 
 ```bash
 # Clone the repository
@@ -39,7 +39,11 @@ cd msig
 
 # Install with experiment dependencies
 pip install -e ".[experiments]"
+# or
+pip install -r requirements.txt
 ```
+
+**For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)**
 
 **Notes**: 
 - MOMENTI has platform-specific dependencies and may not install on macOS.
