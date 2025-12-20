@@ -24,6 +24,7 @@ def run_unit_tests():
     logger.info("="*60)
     
     try:
+        # First try to run pytest
         result = subprocess.run(
             ['uv', 'run', 'python', '-m', 'pytest', 'tests/', '-v'],
             capture_output=True,
@@ -49,7 +50,47 @@ def run_unit_tests():
         return False
     except Exception as e:
         logger.error(f"✗ Unit tests ERROR: {e}")
-        return False
+        logger.info("📋 Trying to install pytest and run tests...")
+        
+        # Try to install pytest and run again
+        try:
+            install_result = subprocess.run(
+                ['uv', 'pip', 'install', 'pytest'],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            
+            if install_result.returncode == 0:
+                logger.info("✓ pytest installed successfully")
+                
+                # Try running tests again
+                result = subprocess.run(
+                    ['uv', 'run', 'python', '-m', 'pytest', 'tests/', '-v'],
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
+                
+                print(result.stdout)
+                if result.stderr:
+                    print(result.stderr, file=sys.stderr)
+                
+                success = result.returncode == 0
+                
+                if success:
+                    logger.info("✓ Unit tests PASSED (after installing pytest)")
+                else:
+                    logger.error(f"✗ Unit tests FAILED with return code {result.returncode}")
+                
+                return success
+            else:
+                logger.error("✗ Failed to install pytest")
+                return False
+        except Exception as e:
+            logger.error(f"✗ Failed to install pytest: {e}")
+            logger.info("📋 You can install pytest manually with: uv pip install pytest")
+            return False
 
 def run_reproducibility_validation():
     """Run reproducibility validation scripts."""
