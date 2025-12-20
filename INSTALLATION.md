@@ -1,159 +1,63 @@
 # MSig Installation Guide
 
-This guide helps you set up MSig and run the experiments successfully.
+Quick guide to set up MSig and run experiments.
 
-## Quick Start (Recommended)
-
-### 1. Install Python
+## 1. Install Python
 
 **Recommended**: Python 3.13
 **Supported**: Python 3.11, 3.12, 3.13
 
 ```bash
-# Check Python version
-python --version  # Should be 3.11, 3.12, or 3.13
+python --version  # Check version
 ```
 
-**Note**: Python 3.14+ may have issues with LAMA dependencies. Use Python 3.11-3.13 for full compatibility.
-
-### 2. Install MSig
-
-#### Using uv (recommended for fast installation)
+## 2. Install MSig
 
 ```bash
-# Install uv if you don't have it
-pip install uv
-
-# Clone the repository
+# Clone repository
 git clone https://github.com/MiguelGarcaoSilva/msig.git
 cd msig
 
-# Install dependencies
+# Install with uv (recommended)
 uv sync
-uv pip install "msig[experiments]"
-```
+uv pip install pandas matplotlib stumpy librosa
 
-#### Using pip
-
-```bash
-# Clone the repository
-git clone https://github.com/MiguelGarcaoSilva/msig.git
-cd msig
-
-# Install with experiment dependencies
+# Or with pip
 pip install -e ".[experiments]"
 ```
 
-### 3. Install System Tools
+## 3. Install ffmpeg (for audio experiments)
 
-**Audio experiments require ffmpeg for MP3 processing:**
-
-**macOS:**
 ```bash
+# macOS
 brew install ffmpeg
+
+# Linux
+sudo apt-get install ffmpeg
+
+# Windows: Download from https://ffmpeg.org/
 ```
 
-**Linux (Ubuntu/Debian):**
+## 4. Validate Setup
+
 ```bash
-sudo apt-get install ffmpeg libsndfile1
+python validate_reproducibility.py
 ```
 
-**Windows:** Download ffmpeg from https://ffmpeg.org/ and add to PATH
-
-**Note**: If you don't install ffmpeg, audio experiments will fail. Other experiments (population density, washing machine) don't require ffmpeg.
-
-## Validate Your Setup
-
-Before running experiments, validate your installation:
+## 5. Run Experiments
 
 ```bash
-# Check environment
-python validate_environment.py
-
-# Check datasets
-python validate_all_datasets.py
-
-# Quick validation
-python run_priority1_validation.py
-```
-
-## Run Experiments
-
-### Audio Experiments
-
-```bash
-# STUMPY (recommended - fastest)
+# Audio experiments
 cd experiments/audio
 python run_stumpy.py
 
-# LAMA (if dependencies work)
-python run_lama.py
-
-# MOMENTI (Linux/Windows only)
-python run_momenti.py
-```
-
-### Other Datasets
-
-```bash
-# Population density experiments
+# Other datasets
 cd experiments/populationdensity
-python run_stumpy.py
-
-# Washing machine experiments
-cd experiments/washingmachine
 python run_stumpy.py
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-**1. Missing dependencies**
-```bash
-uv sync  # Reinstall dependencies
-```
-
-**2. Audio loading errors**
-```bash
-brew install ffmpeg  # macOS
-sudo apt-get install ffmpeg  # Linux
-```
-
-**3. Memory issues**
-- Reduce experiment parameters
-- Use smaller subsequence lengths
-- Limit number of motifs
-
-**4. Python version issues**
-```bash
-pyenv install 3.12.0  # Install correct Python version
-pyenv global 3.12.0   # Set as default
-```
-
-### Experiment Parameters
-
-To reduce execution time, modify these parameters in experiment scripts:
-
-```python
-# Reduce these for faster testing
-subsequence_lengths = [int(0.5 * sr / hop_length)]  # Smaller windows
-min_neighbors = 1  # Fewer matches required
-max_motifs = 5  # Limit number of motifs
-```
-
-## Expected Results
-
-- Results saved to `results/<dataset>/<method>/`
-- CSV files with motif statistics
-- Log files with execution details
-- Execution time: Minutes to hours depending on parameters
-
-## Support
-
-For issues, check:
-1. This installation guide
-2. README.md for general information
-3. Experiment script comments for parameter explanations
-
-If problems persist, the validation scripts will help identify the issue.
+**Memory issues**: Reduce experiment parameters
+**Python 3.14+**: Use Python 3.11-3.13 for LAMA
+**ffmpeg missing**: Audio experiments need ffmpeg
