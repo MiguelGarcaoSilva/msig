@@ -19,10 +19,14 @@ def test_python_version():
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     logger.info(f"Python version: {python_version}")
     
-    # Check minimum version requirement
-    if sys.version_info < (3, 12):
-        logger.error(f"✗ Python {python_version} is too old. Minimum required: 3.12")
+    # Check version requirements
+    if sys.version_info < (3, 11):
+        logger.error(f"✗ Python {python_version} is too old. Minimum required: 3.11")
         return False
+    elif sys.version_info >= (3, 14):
+        logger.warning(f"⚠️ Python {python_version} may have issues with LAMA dependencies")
+        logger.info("✅ STUMPY experiments will work fine")
+        logger.info("📋 Consider Python 3.11-3.13 for full LAMA compatibility")
     
     logger.info("✓ Python version compatible")
     return True
@@ -87,17 +91,26 @@ def test_system_tools():
     logger.info("Testing system tools...")
     
     # Check for ffmpeg (required for audio experiments)
+    ffmpeg_available = False
     try:
         result = subprocess.run(['ffmpeg', '-version'], 
                               capture_output=True, text=True, timeout=5)
         if result.returncode == 0:
             logger.info("✓ ffmpeg available")
+            ffmpeg_available = True
         else:
-            logger.warning("⚠ ffmpeg not found - audio experiments may fail")
+            logger.warning("⚠ ffmpeg not found - audio experiments will fail")
     except (subprocess.TimeoutExpired, FileNotFoundError):
-        logger.warning("⚠ ffmpeg not found - audio experiments may fail")
+        logger.warning("⚠ ffmpeg not found - audio experiments will fail")
     except Exception as e:
         logger.warning(f"⚠ Error checking ffmpeg: {e}")
+    
+    if not ffmpeg_available:
+        logger.info("📋 Install ffmpeg with:")
+        logger.info("   macOS: brew install ffmpeg")
+        logger.info("   Linux: sudo apt-get install ffmpeg")
+        logger.info("   Windows: Download from https://ffmpeg.org/")
+        logger.info("📋 Note: Population density and washing machine experiments don't require ffmpeg")
     
     return True  # Don't fail for missing system tools
 

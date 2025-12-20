@@ -46,8 +46,12 @@ pip install -r requirements.txt
 **For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)**
 
 **Notes**: 
-- MOMENTI has platform-specific dependencies and may not install on macOS.
-- Audio experiments require **ffmpeg** for MP3 processing: `brew install ffmpeg` (macOS) or `apt-get install ffmpeg` (Linux)
+- **Python Version**: Python 3.11-3.13 recommended (3.14+ may have LAMA issues)
+- **MOMENTI**: Platform-specific dependencies, may not install on macOS
+- **Audio experiments**: Require **ffmpeg** for MP3 processing
+  - macOS: `brew install ffmpeg`
+  - Linux: `sudo apt-get install ffmpeg`
+  - Windows: Download from https://ffmpeg.org/
 
 ## Quick Start
 

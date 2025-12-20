@@ -6,12 +6,15 @@ This guide helps you set up MSig and run the experiments successfully.
 
 ### 1. Install Python
 
-**Minimum requirement**: Python 3.12+
+**Recommended**: Python 3.13
+**Supported**: Python 3.11, 3.12, 3.13
 
 ```bash
 # Check Python version
-python --version  # Should be 3.12 or higher
+python --version  # Should be 3.11, 3.12, or 3.13
 ```
+
+**Note**: Python 3.14+ may have issues with LAMA dependencies. Use Python 3.11-3.13 for full compatibility.
 
 ### 2. Install MSig
 
@@ -43,6 +46,8 @@ pip install -e ".[experiments]"
 
 ### 3. Install System Tools
 
+**Audio experiments require ffmpeg for MP3 processing:**
+
 **macOS:**
 ```bash
 brew install ffmpeg
@@ -54,6 +59,8 @@ sudo apt-get install ffmpeg libsndfile1
 ```
 
 **Windows:** Download ffmpeg from https://ffmpeg.org/ and add to PATH
+
+**Note**: If you don't install ffmpeg, audio experiments will fail. Other experiments (population density, washing machine) don't require ffmpeg.
 
 ## Validate Your Setup
 
