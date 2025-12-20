@@ -105,6 +105,69 @@ uv run python experiments/washingmachine/run_momenti.py
 
 Results are saved to `results/<dataset>/<method>/`.
 
+## Reproducibility Validation
+
+MSig includes validation scripts to ensure experiments can be reproduced on your system:
+
+### Validation Scripts
+
+1. **Environment Validation**
+   ```bash
+   python validate_environment.py
+   ```
+   - Checks Python version and all dependencies
+   - Validates MSig core functionality
+   - Verifies data file availability
+   - Tests system tool requirements
+
+2. **Dataset Validation**
+   ```bash
+   python validate_all_datasets.py
+   ```
+   - Tests audio, population density, and washing machine datasets
+   - Validates data loading and preprocessing
+   - Checks data consistency and format compatibility
+
+3. **Priority 1 Validation** (Quick Check)
+   ```bash
+   python run_priority1_validation.py
+   ```
+   - Validates core reproducibility components
+   - Tests environment, datasets, and basic experiment execution
+   - Fast execution (~30 seconds)
+
+4. **Comprehensive Validation** (Full Check)
+   ```bash
+   python run_all_tests.py
+   ```
+   - Runs unit tests and all validation scripts
+   - Provides complete reproducibility verification
+   - Includes detailed reporting and diagnostics
+
+### Quick Validation
+
+For a quick check before running experiments:
+```bash
+# Validate environment and data
+python validate_environment.py
+python validate_all_datasets.py
+
+# Or run comprehensive validation
+python run_priority1_validation.py
+```
+
+### Unit Tests
+
+For developers, run the unit test suite:
+```bash
+# Run all unit tests
+uv run python -m pytest tests/ -v
+
+# Run specific test files
+uv run python -m pytest tests/test_basic.py -v
+uv run python -m pytest tests/test_statistical_methods.py -v
+```
+
 ## Citation
 
 ```bibtex
