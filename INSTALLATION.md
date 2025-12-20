@@ -4,12 +4,14 @@ Quick guide to set up MSig and run experiments.
 
 ## 1. Install Python
 
-**Recommended**: Python 3.13
+**Recommended**: Python 3.12 or 3.13
 **Supported**: Python 3.11, 3.12, 3.13
 
 ```bash
 python --version  # Check version
 ```
+
+**Note**: Python 3.12 works great! Use Python 3.11-3.13 for full compatibility.
 
 ## 2. Install MSig
 
