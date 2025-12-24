@@ -10,33 +10,30 @@ MSig is a Python library for statistical significance testing of multivariate ti
 
 ### Installation
 ```bash
-uv sync                              # Install with uv (recommended)
-pip install -e ".[experiments]"      # Install with pip
+uv sync                              # Recommended: installs all dependencies
+pip install -e ".[experiments]"      # Alternative: pip installation
 ```
 
 ### Testing
 ```bash
-uv run python -m pytest tests/ -v    # Run all tests
-uv run python -m pytest tests/test_basic.py -v  # Run single test file
-uv run python -m pytest tests/ -v -k "test_name"  # Run specific test
-```
-
-### Validation
-```bash
-python validate_reproducibility.py   # Check environment and dependencies
+uv run python validate_reproducibility.py        # Validate environment
+uv run python -m pytest tests/ -v                # All tests
+uv run python -m pytest tests/test_basic.py -v   # Single test file
+uv run python -m pytest tests/ -v -k "test_name" # Specific test
 ```
 
 ### Running Experiments
 ```bash
-uv run python experiments/audio/run_stumpy.py
+uv run python run_experiments.py --all                  # All experiments
+uv run python experiments/audio/run_stumpy.py           # Individual experiment
 uv run python experiments/populationdensity/run_lama.py
 uv run python experiments/washingmachine/run_momenti.py
 ```
 
 ### Code Formatting
 ```bash
-black msig/ tests/ --line-length 100
-isort msig/ tests/
+uv run black msig/ tests/ --line-length 100
+uv run isort msig/ tests/
 ```
 
 ## Architecture

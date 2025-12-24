@@ -12,18 +12,17 @@ MSig is a statistical framework for evaluating the significance of motifs in mul
 
 ## Installation
 
-Install from PyPI:
-
 ```bash
-pip install msig
+pip install msig                    # Core package
+pip install "msig[experiments]"     # With experiment dependencies
 ```
 
-For development or running experiments, clone from GitHub:
+**Development install with uv:**
 
 ```bash
 git clone https://github.com/MiguelGarcaoSilva/msig.git
 cd msig
-pip install -e ".[experiments]"
+uv sync
 ```
 
 ## Quick Start
@@ -91,7 +90,7 @@ See the [GitHub repository](https://github.com/MiguelGarcaoSilva/msig) for compl
 
 ## Requirements
 
-- Python ≥ 3.12
+- Python 3.11-3.13
 - NumPy ≥ 1.20.0
 - SciPy ≥ 1.7.0
 

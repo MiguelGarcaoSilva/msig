@@ -6,53 +6,27 @@ MSig evaluates whether discovered motifs occur more frequently than expected by 
 
 ## Installation
 
-### From PyPI (recommended)
+### Quick Install from PyPI
 
 ```bash
-# Core package only
-pip install msig
-
-# With experiment dependencies (includes STUMPY and LAMA)
-pip install "msig[experiments]"
+pip install msig                    # Core package only
+pip install "msig[experiments]"     # With experiment dependencies
 ```
 
-### From source with uv (recommended)
+### Development Install with uv (Recommended)
 
 ```bash
-# Clone the repository
 git clone https://github.com/MiguelGarcaoSilva/msig.git
 cd msig
+uv sync                             # Installs all dependencies
 
-# Sync dependencies (includes STUMPY and LAMA)
-uv sync
-
-# Optional: Install MOMENTI (for MOMENTI experiments - Linux x86_64/Windows only)
-# Note: MOMENTI requires Intel compiler runtime, not available on macOS
+# Optional: MOMENTI (Linux x86_64/Windows only)
 uv pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs
 ```
 
-### From source with pip
-
-```bash
-# Clone repository
-git clone https://github.com/MiguelGarcaoSilva/msig.git
-cd msig
-
-# Install with experiment dependencies
-pip install -e ".[experiments]"
-# or
-pip install -r requirements.txt
-```
-
-**For detailed installation instructions, see [INSTALLATION.md](INSTALLATION.md)**
-
-**Notes**:
-- **Python Version**: Python 3.11-3.13 recommended (3.14+ may have LAMA issues)
-- **MOMENTI**: Requires Intel compiler runtime libraries (Linux x86_64/Windows only, not available on macOS)
-- **Audio experiments**: Require **ffmpeg** for MP3 processing
-  - macOS: `brew install ffmpeg`
-  - Linux: `sudo apt-get install ffmpeg`
-  - Windows: Download from https://ffmpeg.org/
+**Requirements**:
+- Python 3.11-3.13 (3.14+ may have LAMA compatibility issues)
+- ffmpeg (for audio experiments): `brew install ffmpeg` (macOS) or `sudo apt-get install ffmpeg` (Linux)
 
 ## Quick Start
 
@@ -97,71 +71,50 @@ See the `examples/` folder for more examples (`simple_example.py` and `example.i
 
 The repository includes case studies on three datasets (audio, population density, washing machine) with three discovery methods (STUMPY, LAMA, MOMENTI).
 
-### Quick Start - Run All Experiments
+### Validate Setup
 
-**First, test your setup:**
 ```bash
-./test_setup.sh  # Verify dependencies, data files, and environment
+uv run python validate_reproducibility.py
 ```
 
-**Then run experiments:**
+### Run All Experiments
+
 ```bash
-# Run all experiments
 uv run python run_experiments.py --all
-
-# Or run in tmux (for long runs - can detach/reattach)
-# From inside tmux:
-uv run python run_experiments.py --all
-# Then: Ctrl-b + d to detach, experiments continue running
-
-# Compare results when done
-uv run python scripts/compare_results.py
+uv run python scripts/compare_results.py  # Compare results
 ```
 
-This will:
-- Run all 6-9 experiments (depending on platform/dependencies)
-- Track progress with estimated runtimes
-- Save metadata for reproducibility
-- Generate run logs
-
-**Estimated total time**: ~2-3 hours
-
-**Note**: MOMENTI requires separate installation: `pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs` (Linux x86_64/Windows only - not macOS)
+**Note**: MOMENTI requires `uv pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs` (Linux x86_64/Windows only)
 
 ### Individual Experiments
 
-Run specific experiments manually:
-
 ```bash
-# Audio experiments (~15-25 min each)
-python experiments/audio/run_stumpy.py
-python experiments/audio/run_lama.py
-python experiments/audio/run_momenti.py
+# Audio experiments
+uv run python experiments/audio/run_stumpy.py
+uv run python experiments/audio/run_lama.py
+uv run python experiments/audio/run_momenti.py
 
-# Population density (~10-15 min each)
-python experiments/populationdensity/run_stumpy.py
-python experiments/populationdensity/run_lama.py
-python experiments/populationdensity/run_momenti.py
+# Population density
+uv run python experiments/populationdensity/run_stumpy.py
+uv run python experiments/populationdensity/run_lama.py
+uv run python experiments/populationdensity/run_momenti.py
 
-# Washing machine (~12-18 min each)
-python experiments/washingmachine/run_stumpy.py
-python experiments/washingmachine/run_lama.py
-python experiments/washingmachine/run_momenti.py
+# Washing machine
+uv run python experiments/washingmachine/run_stumpy.py
+uv run python experiments/washingmachine/run_lama.py
+uv run python experiments/washingmachine/run_momenti.py
 ```
 
 ### Experiment Runner Options
 
 ```bash
 # Run specific combinations
-python run_experiments.py --dataset audio           # All methods on audio
-python run_experiments.py --method stumpy           # STUMPY on all datasets
-python run_experiments.py --dataset audio --method lama
+uv run python run_experiments.py --dataset audio           # All methods on audio
+uv run python run_experiments.py --method stumpy           # STUMPY on all datasets
+uv run python run_experiments.py --dataset audio --method lama
 
-# Preview what would run (dry-run mode)
-python run_experiments.py --all --dry-run
-
-# Show detailed output
-python run_experiments.py --all --verbose
+# Preview what would run
+uv run python run_experiments.py --all --dry-run
 ```
 
 ### Understanding Results
@@ -187,52 +140,23 @@ Key result interpretations:
 
 ### Comparing Results
 
-Generate comprehensive comparison reports:
-
 ```bash
-# Full comparison across all methods and datasets
-python scripts/compare_results.py
-# Creates: RESULTS_COMPARISON.md and results_summary.csv
-
-# Compare specific aspects
-python scripts/compare_results.py --dataset audio    # Compare methods on audio
-python scripts/compare_results.py --method stumpy    # Compare STUMPY across datasets
+uv run python scripts/compare_results.py                    # Full comparison
+uv run python scripts/compare_results.py --dataset audio    # Methods on audio
+uv run python scripts/compare_results.py --method stumpy    # STUMPY across datasets
 ```
 
 ### Datasets
 
-1. **Audio** (`data/audio/imblue.mp3` - 8.4 MB)
-   - 12 MFCC features, subsequence lengths: [21, 43, 130, 217] frames (0.5s-5s)
-   - Discovery goal: Musical patterns (beats, measures, phrases)
+1. **Audio**: 12 MFCC features from `imblue.mp3` - musical patterns (beats, measures, phrases)
+2. **Population Density**: 3 variables (Terminals, Roaming, Calls) - daily urban mobility patterns
+3. **Washing Machine**: 7 sensor variables - operating mode patterns
 
-2. **Population Density** (`data/populationdensity/hourly_saodomingosbenfica.csv` - 17 MB)
-   - 3 variables (Terminals, Roaming, Calls), lengths: [4, 6, 12, 24] hours
-   - Discovery goal: Daily patterns in urban mobility
-
-3. **Washing Machine** (`data/washingmachine/main_readings.csv` - 3.0 MB)
-   - 7 sensor variables (Current, Power Factor, Water levels/temps)
-   - Discovery goal: Operating mode patterns
-
-## Reproducibility Validation
-
-Validate your setup before running experiments:
+## Testing
 
 ```bash
-python validate_reproducibility.py
-```
-
-This single script checks:
-- Python version compatibility
-- Core and experiment dependencies
-- ffmpeg availability
-- Data file availability
-- Core MSig functionality
-
-### Unit Tests
-
-For developers:
-```bash
-uv run python -m pytest tests/ -v
+uv run python validate_reproducibility.py  # Validate environment
+uv run python -m pytest tests/ -v          # Run unit tests
 ```
 
 ## Citation

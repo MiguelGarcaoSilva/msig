@@ -1,30 +1,37 @@
 # MSig Installation Guide
 
-Quick guide to set up MSig and run experiments.
+Quick setup guide for MSig and experiments.
 
 ## 1. Install Python
 
-**Recommended**: Python 3.12 or 3.13
-**Supported**: Python 3.11, 3.12, 3.13
+**Recommended**: Python 3.11-3.13
 
 ```bash
 python --version  # Check version
 ```
 
-**Note**: Python 3.12 works great! Use Python 3.11-3.13 for full compatibility.
-
 ## 2. Install MSig
 
+### From PyPI
+
 ```bash
-# Clone repository
+pip install msig                    # Core package
+pip install "msig[experiments]"     # With experiment dependencies
+```
+
+### From Source with uv (Recommended)
+
+```bash
 git clone https://github.com/MiguelGarcaoSilva/msig.git
 cd msig
+uv sync                             # Installs all dependencies
+```
 
-# Install with uv (recommended)
-uv sync
-uv pip install pandas matplotlib stumpy librosa
+### From Source with pip
 
-# Or with pip
+```bash
+git clone https://github.com/MiguelGarcaoSilva/msig.git
+cd msig
 pip install -e ".[experiments]"
 ```
 
@@ -37,29 +44,38 @@ brew install ffmpeg
 # Linux
 sudo apt-get install ffmpeg
 
-# Windows: Download from https://ffmpeg.org/
+# Windows
+# Download from https://ffmpeg.org/
 ```
 
-## 4. Validate Setup
+## 4. Install MOMENTI (Optional - Linux/Windows only)
 
 ```bash
-python validate_reproducibility.py
+uv pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs
 ```
 
-## 5. Run Experiments
+**Note**: MOMENTI requires Intel compiler runtime libraries and is not available on macOS.
+
+## 5. Validate Setup
 
 ```bash
-# Audio experiments
-cd experiments/audio
-python run_stumpy.py
+uv run python validate_reproducibility.py
+```
 
-# Other datasets
-cd experiments/populationdensity
-python run_stumpy.py
+## 6. Run Experiments
+
+```bash
+# All experiments
+uv run python run_experiments.py --all
+
+# Individual experiments
+uv run python experiments/audio/run_stumpy.py
+uv run python experiments/populationdensity/run_lama.py
+uv run python experiments/washingmachine/run_momenti.py
 ```
 
 ## Troubleshooting
 
-**Memory issues**: Reduce experiment parameters
-**Python 3.14+**: Use Python 3.11-3.13 for LAMA
-**ffmpeg missing**: Audio experiments need ffmpeg
+- **Memory issues**: Reduce experiment parameters
+- **LAMA compatibility**: Use Python 3.11-3.13
+- **Audio experiments**: Require ffmpeg installation
