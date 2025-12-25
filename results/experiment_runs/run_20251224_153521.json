@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-12-24T15:35:21.623402",
+  "platform": "Darwin",
+  "python_version": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.3.19.1)]",
+  "total_duration_minutes": 228.11347113333335,
+  "experiments": [
+    {
+      "dataset": "audio",
+      "method": "stumpy",
+      "script": "experiments/audio/run_stumpy.py",
+      "success": true,
+      "duration_minutes": 3.312887133333333,
+      "status": "success"
+    },
+    {
+      "dataset": "audio",
+      "method": "lama",
+      "script": "experiments/audio/run_lama.py",
+      "success": true,
+      "duration_minutes": 102.6658728,
+      "status": "success"
+    },
+    {
+      "dataset": "populationdensity",
+      "method": "stumpy",
+      "script": "experiments/populationdensity/run_stumpy.py",
+      "success": true,
+      "duration_minutes": 0.23155206666666667,
+      "status": "success"
+    },
+    {
+      "dataset": "populationdensity",
+      "method": "lama",
+      "script": "experiments/populationdensity/run_lama.py",
+      "success": true,
+      "duration_minutes": 7.017220983333333,
+      "status": "success"
+    },
+    {
+      "dataset": "washingmachine",
+      "method": "stumpy",
+      "script": "experiments/washingmachine/run_stumpy.py",
+      "success": true,
+      "duration_minutes": 1.6784161,
+      "status": "success"
+    },
+    {
+      "dataset": "washingmachine",
+      "method": "lama",
+      "script": "experiments/washingmachine/run_lama.py",
+      "success": true,
+      "duration_minutes": 113.18913479999999,
+      "status": "success"
+    }
+  ]
+}
