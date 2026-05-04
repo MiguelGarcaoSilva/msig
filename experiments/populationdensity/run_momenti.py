@@ -167,6 +167,8 @@ def compute_motif_statistics_momenti(
         try:
             motif_obj = Motif(list(multivar_subsequence), list(dimensions), delta_thresholds, len(indices))
             p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+            # Variables are not identically distributed (different scales/units/dynamics);
+            # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
             p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
         except Exception as e:
             # If significance computation fails (e.g., sampling issues), use NaN
