@@ -3,8 +3,9 @@ Unit tests for MSig statistical methods.
 Tests statistical functions in isolation.
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from msig import benjamini_hochberg_fdr, bonferroni_correction
 
 
@@ -38,20 +39,40 @@ class TestStatisticalMethods:
         # All should be significant, return the largest
         assert result == 0.005
 
-    def test_benjamini_hochberg_none_significant(self):
-        """Test Benjamini-Hochberg when no p-values are significant."""
-        p_values = [0.1, 0.2, 0.3, 0.4, 0.5]
-        result = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.05)
-        # None should be significant, return FDR threshold
-        assert result == 0.05
+    def test_benjamini_hochberg_canonical_example(self):
+        """Benjamini & Hochberg (1995) §3 example (all 15 hypotheses).
+
+        For the 15 ordered p-values from Table 1 of the paper at α=0.05, the
+        largest i satisfying p_(i) ≤ (i/n)·α is i=4, so the critical value
+        is p_(4) = 0.0095.  (i=5 fails: 0.0201 > (5/15)·0.05 = 0.0167.)
+        """
+        p_values = [
+            0.0001,
+            0.0004,
+            0.0019,
+            0.0095,
+            0.0201,
+            0.0278,
+            0.0298,
+            0.0344,
+            0.0459,
+            0.0600,
+            0.0630,
+            0.2490,
+            0.3240,
+            0.4590,
+            0.5430,
+        ]
+        critical = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.05)
+        assert abs(critical - 0.0095) < 1e-12
 
     def test_benjamini_hochberg_different_alpha(self):
         """Test Benjamini-Hochberg with different alpha values."""
         p_values = [0.001, 0.01, 0.02, 0.03, 0.04]
-        
+
         result_01 = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.01)
         result_05 = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.05)
-        
+
         assert result_01 <= result_05
         assert result_01 <= 0.01
         assert result_05 <= 0.05
@@ -77,10 +98,10 @@ class TestStatisticalMethods:
     def test_bonferroni_correction_different_alpha(self):
         """Test Bonferroni correction with different alpha values."""
         p_values = [0.01, 0.02, 0.03]
-        
+
         result_01 = bonferroni_correction(p_values, alpha=0.01)
         result_05 = bonferroni_correction(p_values, alpha=0.05)
-        
+
         assert result_01 == 0.01 / 3
         assert result_05 == 0.05 / 3
         assert result_01 < result_05
@@ -92,16 +113,16 @@ class TestProbabilityCalculations:
     def test_pattern_probability_bounds(self):
         """Test that pattern probabilities are within valid bounds."""
         from msig import Motif, NullModel
-        
+
         np.random.seed(42)
         data = np.random.randn(2, 50)
         model = NullModel(data, dtypes=[float, float], model="empirical")
-        
+
         pattern = data[:, 5:10]
         motif = Motif(list(pattern), [0, 1], [0.1, 0.1], n_matches=3)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         # Probability should be between 0 and 1
         assert 0.0 <= prob <= 1.0
         assert isinstance(prob, float)
@@ -109,31 +130,31 @@ class TestProbabilityCalculations:
     def test_zero_probability_pattern(self):
         """Test pattern with zero probability."""
         from msig import Motif, NullModel
-        
+
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         # Pattern that never occurs in data
         pattern = np.array([[99.0]])
         motif = Motif(list(pattern), [0], [0.0], n_matches=1)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         assert prob == 0.0
 
     def test_certain_probability_pattern(self):
         """Test pattern with certain probability."""
         from msig import Motif, NullModel
-        
+
         # Data where pattern is certain
         data = np.array([[1, 1, 1, 1, 1]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         pattern = np.array([[1.0]])
         motif = Motif(list(pattern), [0], [0.0], n_matches=5)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         assert prob == 1.0
 
 
@@ -143,21 +164,21 @@ class TestSignificanceTesting:
     def test_significance_calculation_bounds(self):
         """Test that p-values are within valid bounds."""
         from msig import Motif, NullModel
-        
+
         np.random.seed(42)
         data = np.random.randn(2, 50)
         model = NullModel(data, dtypes=[float, float], model="empirical")
-        
+
         pattern = data[:, 5:10]
         motif = Motif(list(pattern), [0, 1], [0.1, 0.1], n_matches=3)
-        
+
         # Set pattern probability
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         # Calculate significance
         max_matches = 45  # 50 - 5 + 1
         pvalue = motif.set_significance(max_matches, 2, idd_correction=False)
-        
+
         # P-value should be between 0 and 1
         assert 0.0 <= pvalue <= 1.0
         assert isinstance(pvalue, float)
@@ -165,16 +186,16 @@ class TestSignificanceTesting:
     def test_significance_with_zero_probability(self):
         """Test significance calculation with zero pattern probability."""
         from msig import Motif, NullModel
-        
+
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         pattern = np.array([[99.0]])
         motif = Motif(list(pattern), [0], [0.0], n_matches=1)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
         pvalue = motif.set_significance(5, 1, idd_correction=False)
-        
+
         # With zero probability, p-value should be zero
         assert prob == 0.0
         assert pvalue == 0.0
@@ -182,19 +203,44 @@ class TestSignificanceTesting:
     def test_significance_with_certain_probability(self):
         """Test significance calculation with certain pattern probability."""
         from msig import Motif, NullModel
-        
+
         data = np.array([[1, 1, 1, 1, 1]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         pattern = np.array([[1.0]])
         motif = Motif(list(pattern), [0], [0.0], n_matches=5)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
         pvalue = motif.set_significance(5, 1, idd_correction=False)
-        
+
         # With certain probability, p-value should be 1.0
         assert prob == 1.0
         assert pvalue == 1.0
+
+
+class TestBonferroniSignatureBC:
+    """Bonferroni accepts both int n_tests and an iterable of p-values (BC)."""
+
+    def test_accepts_int_directly(self):
+        from msig import bonferroni_correction
+
+        assert bonferroni_correction(5, alpha=0.05) == 0.01
+
+    def test_accepts_iterable_for_backward_compat(self):
+        from msig import bonferroni_correction
+
+        assert bonferroni_correction([0.1] * 5, alpha=0.05) == 0.01
+
+    def test_int_zero_returns_alpha(self):
+        from msig import bonferroni_correction
+
+        assert bonferroni_correction(0, alpha=0.05) == 0.05
+
+    def test_int_negative_returns_alpha(self):
+        """Defensive: negative n_tests treated like 0."""
+        from msig import bonferroni_correction
+
+        assert bonferroni_correction(0, alpha=0.05) == 0.05
 
 
 if __name__ == "__main__":

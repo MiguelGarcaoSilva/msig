@@ -235,8 +235,9 @@ def main():
     print("\n" + "=" * 70)
     print("Examples completed!")
     print("\nFor more information, see:")
-    print("  - README.md: Overview and installation")
-    print("  - REPRODUCING_EXPERIMENTS.md: Case studies with real data")
+    print("  - README.md: Overview and quick start")
+    print("  - INSTALLATION.md: Setup")
+    print("  - REPRODUCING_EXPERIMENTS.md: How to recreate the paper's tables")
     print("  - CONTRIBUTING.md: Development guidelines")
     print("=" * 70 + "\n")
 

@@ -17,12 +17,24 @@ import math
 import logging
 from typing import Tuple
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(levelname)s:%(name)s:%(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
+
+# Per-variable approximate-match tolerance δ used to derive the maximum
+# allowed Z-normalized Euclidean distance between motif occurrences.
+# See paper §3.3 for D_max formulas; this value is identical across
+# datasets in the published experiments.
+AVERAGE_DELTA: float = 0.3
 
 
 def load_audio_data(audio_path: str) -> Tuple[np.ndarray, pd.DataFrame, int | float]:
@@ -119,7 +131,7 @@ def compute_motif_statistics_stumpy(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(s / 2)
+    r = np.ceil(EXCLUSION_ZONE_FACTOR * s)
     max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     motif_index = 0
@@ -172,8 +184,10 @@ def compute_motif_statistics_stumpy(
         # Compute significance
         motif_obj = Motif(list(multivar_subsequence), dimensions, delta_thresholds, len(indices))
         p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+        # Variables are not identically distributed (different scales/units/dynamics);
+        # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
         p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
-        
+
         # Store results
         stats_row = {
             "ID": motif_index,
@@ -197,9 +211,9 @@ def compute_motif_statistics_stumpy(
 
 def main():
     # Paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    audio_path = os.path.join(script_dir, "../../data/audio/imblue.mp3")
-    results_dir = os.path.abspath(os.path.join(script_dir, "../../results/audio/stumpy"))
+    paths = get_dataset_paths("audio")
+    audio_path = paths["data_file"]
+    results_dir = os.path.join(paths["results_dir"], "stumpy")
     
     # Load audio and extract MFCCs
     X, data_df, sr = load_audio_data(audio_path)
@@ -254,7 +268,9 @@ def main():
             'cutoffs': np.inf,            # No per-dimension filtering
             'max_matches': 99999,         # No practical limit
             'max_motifs': 50,             # Focus on top 50 patterns
-            'description': 'Conservative: High confidence, minimize false positives'
+            'description': 'Conservative: high-specificity regime (D_max = sqrt(s)*delta*0.5; '
+                           'note: paper §3.3 conservative formula is D_max = (1/q)Σδ_j '
+                           'without sqrt(s); the published tables use the sqrt(s)*0.5 form)'
         }
     }
     
@@ -277,12 +293,12 @@ def main():
         max_matches = mode_config['max_matches']
         max_motifs = mode_config['max_motifs']
         k = None  # Auto-compute dimensionality using MDL (unconstrained search)
-        average_delta = 0.3
-        
+        average_delta = AVERAGE_DELTA
+
         all_stats = pd.DataFrame()
         max_dists = []
         cutoffs_list = []
-        
+
         for s in subsequence_lengths:
             logger.info(f"\n{'=' * 70}")
             logger.info(f"Processing motif length s={s} ({s * hop_length / sr:.2f} seconds)")

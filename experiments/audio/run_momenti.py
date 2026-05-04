@@ -16,6 +16,7 @@ from typing import Tuple
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 # Add MOMENTI to path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +29,11 @@ logging.basicConfig(
     format='%(levelname)s:%(name)s:%(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
 
 
 def load_audio_data(audio_path: str) -> Tuple[np.ndarray, pd.DataFrame, int | float]:
@@ -102,7 +108,7 @@ def compute_motif_statistics_momenti(
     model_empirical = NullModel(data_norm_t, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(s / 2)
+    r = np.ceil(EXCLUSION_ZONE_FACTOR * s)
     max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_data in motifs:
@@ -172,6 +178,8 @@ def compute_motif_statistics_momenti(
         try:
             motif_obj = Motif(list(multivar_subsequence), list(dimensions), delta_thresholds, len(indices))
             p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+            # Variables are not identically distributed (different scales/units/dynamics);
+            # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
             p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
         except Exception as e:
             # If significance computation fails (e.g., sampling issues), use NaN
@@ -184,14 +192,14 @@ def compute_motif_statistics_momenti(
             "ID": motif_id,
             "k": len(dimensions),
             "Features": ",".join([str(d) for d in dimensions]),
-            "s": m,
+            "s": s,
             "#Matches": len(indices),  # Total occurrences (consistent with LAMA and statistical test)
             "Indices": [int(i) for i in indices],
             "Distance": round(distance, 3),
             "P": p_pattern,
             "p-value": p_value
         }
-        
+
         stats_table = pd.concat([stats_table, pd.DataFrame([stats_row])], ignore_index=True)
     
     return stats_table
@@ -199,9 +207,9 @@ def compute_motif_statistics_momenti(
 
 def main():
     # Paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    audio_path = os.path.join(script_dir, "../data/audio/imblue.mp3")
-    results_dir = os.path.abspath(os.path.join(script_dir, "../results/audio/momenti"))
+    paths = get_dataset_paths("audio")
+    audio_path = paths["data_file"]
+    results_dir = os.path.join(paths["results_dir"], "momenti")
     os.makedirs(results_dir, exist_ok=True)
     
     # Load audio and extract MFCCs

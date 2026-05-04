@@ -60,10 +60,14 @@ import sys
 packages = {
     'numpy': 'Core',
     'scipy': 'Core',
+    'tabulate': 'Core',
     'pandas': 'Experiments',
     'matplotlib': 'Experiments',
     'stumpy': 'Experiments (STUMPY)',
     'librosa': 'Experiments (Audio)',
+    'statsmodels': 'Experiments',
+    'jinja2': 'Experiments',
+    'psutil': 'Experiments (LAMA dep)',
     'msig': 'MSig Library'
 }
 

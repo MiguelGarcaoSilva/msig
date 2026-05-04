@@ -14,6 +14,7 @@ import os
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 # Add leitmotifs to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../leitmotifs')))
@@ -30,6 +31,17 @@ logging.basicConfig(
     format='%(levelname)s:%(name)s:%(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
+
+# Per-variable approximate-match tolerance δ used to derive the maximum
+# allowed Z-normalized Euclidean distance between motif occurrences.
+# See paper §3.3 for D_max formulas; this value is identical across
+# datasets in the published experiments.
+AVERAGE_DELTA: float = 0.3
 
 
 def load_population_density_data(data_path: str) -> tuple:
@@ -217,7 +229,7 @@ def compute_motif_statistics_lama(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(s / 2)
+    r = np.ceil(EXCLUSION_ZONE_FACTOR * s)
     max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_idx, motif_info in enumerate(motifs):
@@ -245,8 +257,10 @@ def compute_motif_statistics_lama(
         # Compute significance
         motif_obj = Motif(multivar_subsequence, dimensions, delta_thresholds, n_matches)
         p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+        # Variables are not identically distributed (different scales/units/dynamics);
+        # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
         p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
-        
+
         logger.info(f"Motif {motif_idx}: k={len(dimensions)}, #matches={n_matches}, p-value={p_value:.2e}")
         
         # Store results
@@ -269,9 +283,9 @@ def compute_motif_statistics_lama(
 
 def main():
     # Paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.abspath(os.path.join(script_dir, "../../data/populationdensity/hourly_saodomingosbenfica.csv"))
-    results_dir = os.path.abspath(os.path.join(script_dir, "../../results/populationdensity/lama_iterative"))
+    paths = get_dataset_paths("populationdensity")
+    data_path = paths["data_file"]
+    results_dir = os.path.join(paths["results_dir"], "lama_iterative")
     os.makedirs(results_dir, exist_ok=True)
     
     # Load data
@@ -280,7 +294,7 @@ def main():
     # Parameters (matching STUMPY case study)
     normalize = True
     subsequence_lengths = [4, 6, 12, 24, 48]  # Hours
-    average_delta = 0.3
+    average_delta = AVERAGE_DELTA
     k_max = 99
     n_jobs = -1
     
@@ -303,7 +317,7 @@ def main():
         
         # Adjust k_max for this motif length
         n_time = X.shape[1]
-        r = np.ceil(s / 2)
+        r = np.ceil(EXCLUSION_ZONE_FACTOR * s)
         max_possible_k = int(np.floor((n_time - s) / r) + 1)
         k_max_adjusted = min(k_max, max_possible_k - 1)
         

@@ -18,6 +18,7 @@ import math
 import logging
 from typing import List, Dict, Tuple
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 # Add leitmotifs to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../leitmotifs'))
@@ -25,6 +26,17 @@ import leitmotifs.lama as lama
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
+
+# Per-variable approximate-match tolerance δ used to derive the maximum
+# allowed Z-normalized Euclidean distance between motif occurrences.
+# See paper §3.3 for D_max formulas; this value is identical across
+# datasets in the published experiments.
+AVERAGE_DELTA: float = 0.3
 
 
 def load_audio_data(audio_path: str) -> Tuple[np.ndarray, pd.DataFrame, int, int]:
@@ -376,7 +388,7 @@ def compute_motif_statistics_lama(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(s / 2)
+    r = np.ceil(EXCLUSION_ZONE_FACTOR * s)
     max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     for motif_idx, motif_info in enumerate(motifs):
@@ -404,8 +416,10 @@ def compute_motif_statistics_lama(
         # Compute significance
         motif_obj = Motif(multivar_subsequence, dimensions, delta_thresholds, n_matches)
         p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+        # Variables are not identically distributed (different scales/units/dynamics);
+        # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
         p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
-        
+
         # Create row
         stats_row = {
             "ID": f"lama_{motif_idx}",
@@ -484,10 +498,10 @@ def main():
     """
     Main execution: Run LAMA-based motif discovery on audio data.
     """
-    # Configuration - use absolute path based on script location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    audio_path = os.path.join(script_dir, '../../data/audio/imblue.mp3')
-    output_dir = os.path.join(script_dir, '../../results/audio/lama_iterative')
+    # Configuration
+    paths = get_dataset_paths("audio")
+    audio_path = paths["data_file"]
+    output_dir = os.path.join(paths["results_dir"], "lama_iterative")
     os.makedirs(output_dir, exist_ok=True)
     
     # Load data
@@ -499,7 +513,7 @@ def main():
     
     # Parameters
     normalize = True
-    average_delta = 0.3
+    average_delta = AVERAGE_DELTA
     max_motifs_per_length = 20  # Try to find up to 20 motifs per length
     n_jobs = -1  # Use all available CPUs
     

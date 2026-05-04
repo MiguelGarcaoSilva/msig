@@ -43,6 +43,9 @@ env/
 !results/**/metadata.json
 !results/**/.gitkeep
 
+# Per-run experiment logs (regenerated each invocation)
+results/experiment_runs/
+
 # Ignore large binary files and detailed tables
 results/**/*.npy
 results/**/*.pkl
@@ -79,6 +82,20 @@ uv.lock
 *.tmp
 *.bak
 .cache/
+
+# Linter / type-checker caches
+.mypy_cache/
+.ruff_cache/
+
+# Numerical artefacts
+*.npz
+*.parquet
+
+# Local-only paper draft (never commit)
+manuscript.tex
+
+# Git worktrees (created by superpowers:using-git-worktrees)
+.worktrees/
 
 
 

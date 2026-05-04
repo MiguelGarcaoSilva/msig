@@ -78,7 +78,10 @@ def main():
 
     if missing_data:
         logger.warning(f"⚠️ Missing data files: {', '.join(missing_data)}")
-        logger.info("📋 Data files not in git - download separately")
+        logger.info("📋 Where to obtain:")
+        logger.info("   Audio: provide your own MP3 of the song the paper analyses; place at data/audio/imblue.mp3")
+        logger.info("   Washing machine: LARCO dataset DOI 10.5281/zenodo.17081452 -> data/washingmachine/main_readings.csv")
+        logger.info("   Population density: synthetic Kaggle subset (https://www.kaggle.com/datasets/miguelgarcaosilva/synthetic-mp-data-in-lisbon)")
     else:
         logger.info("✓ All data files available")
 

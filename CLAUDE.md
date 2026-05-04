@@ -48,7 +48,7 @@ uv run isort msig/ tests/
 **Motif**: Represents a multivariate pattern with significance testing.
 - Stores pattern definition, variable indices, delta thresholds, and match count
 - `set_pattern_probability(model, vars_indep)`: Computes pattern probability against null model
-- `set_significance(max_possible_matches, data_n_variables, idd_correction)`: Computes p-value using binomial survival function
+- `set_significance(max_possible_matches, data_n_variables, idd_correction, pattern_prob_floor)`: Computes p-value using binomial survival function. `idd_correction=True` multiplies by `C(m, q)` when variables are identically distributed (paper §3.2). `pattern_prob_floor` is an opt-in Laplace floor for the zero-frequency case; default `None` preserves 0.1.x behaviour.
 
 ### Multiple Testing Corrections (msig/MSig.py)
 
