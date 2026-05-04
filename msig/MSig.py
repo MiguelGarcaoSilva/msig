@@ -9,7 +9,7 @@ from scipy.stats import norm, binom, gaussian_kde, multivariate_normal
 logger = logging.getLogger(__name__)
 
 
-def _rect_prob_2d(dist, lo, hi) -> float:
+def _rect_prob_2d(dist: Any, lo: Sequence[float], hi: Sequence[float]) -> float:
     """
     Probability of a 2D rectangle [lo[0], hi[0]] × [lo[1], hi[1]] under a 2D distribution.
 
