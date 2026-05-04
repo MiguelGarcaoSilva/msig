@@ -184,14 +184,14 @@ def compute_motif_statistics_momenti(
             "ID": motif_id,
             "k": len(dimensions),
             "Features": ",".join([str(d) for d in dimensions]),
-            "s": m,
+            "s": s,
             "#Matches": len(indices),  # Total occurrences (consistent with LAMA and statistical test)
             "Indices": [int(i) for i in indices],
             "Distance": round(distance, 3),
             "P": p_pattern,
             "p-value": p_value
         }
-        
+
         stats_table = pd.concat([stats_table, pd.DataFrame([stats_row])], ignore_index=True)
     
     return stats_table
