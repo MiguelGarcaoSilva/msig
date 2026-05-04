@@ -201,7 +201,7 @@ def main():
     
     # Parameters
     normalize = True
-    subsequence_lengths = [4, 6, 12, 24]  # Hours
+    subsequence_lengths = [4, 6, 12, 24, 48]  # Hours
     logger.info(f"Subsequence lengths: {subsequence_lengths} hours")
     
     # MOMENTI parameters - OPTIMIZED FOR SPEED/QUALITY BALANCE
