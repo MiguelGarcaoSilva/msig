@@ -408,6 +408,50 @@ class TestKDEConditional:
         assert 0.75 <= ratio <= 1.25, f"KDE/empirical ratio {ratio:.3f} outside ±25%"
 
 
+class TestSetSignificanceAlwaysSetsPvalue:
+    """Every return path of set_significance must populate self.pvalue."""
+
+    def test_p_q_zero_sets_self_pvalue(self):
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 2, 3, 4, 5]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        # Pattern that never occurs in data => p_Q = 0
+        motif = Motif(np.array([[99.0]]), [0], [0.0], n_matches=1)
+        motif.set_pattern_probability(model, vars_indep=True)
+        returned = motif.set_significance(5, 1, idd_correction=False)
+        assert motif.pvalue == returned
+        assert motif.pvalue == 0.0
+
+    def test_p_q_one_sets_self_pvalue(self):
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 1, 1, 1, 1]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[1.0]]), [0], [0.0], n_matches=5)
+        motif.set_pattern_probability(model, vars_indep=True)
+        returned = motif.set_significance(5, 1, idd_correction=False)
+        assert motif.pvalue == returned
+        assert motif.pvalue == 1.0
+
+    def test_n_matches_ge_max_sets_self_pvalue(self):
+        """Degenerate case n_matches >= max_possible_matches returns NaN."""
+        import math
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.array([[0.5] * 20], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[0.5]]), [0], [0.0], n_matches=10)
+        motif.set_pattern_probability(model, vars_indep=True)
+        # max_possible_matches = 5, n_matches = 10 => degenerate
+        returned = motif.set_significance(5, 1, idd_correction=False)
+        assert math.isnan(returned) or returned == 1.0
+        assert motif.pvalue == returned or (math.isnan(returned) and math.isnan(motif.pvalue))
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])

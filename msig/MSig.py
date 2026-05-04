@@ -651,38 +651,24 @@ class Motif:
             raise ValueError(f"max_possible_matches must be positive, got {max_possible_matches}")
         if data_n_variables <= 0:
             raise ValueError(f"data_n_variables must be positive, got {data_n_variables}")
-        
+
         # Handle edge cases
-        if self.p_Q in [0.0, 1.0]:
-            return float(self.p_Q)
-
-        if self.n_matches >= max_possible_matches:
-            logger.warning(
-                f"Degenerate case: n_matches={self.n_matches} >= max_possible_matches={max_possible_matches}. "
-                "Returning NaN."
-            )
-            return float("nan")
-
-        # Compute binomial tail probability P(X >= n_matches)
-        try:
-            pvalue = float(binom.sf(self.n_matches - 1, max_possible_matches, self.p_Q))
-        except OverflowError as e:
-            # Fallback to manual sum if binomial computation overflows
-            logger.warning(
-                f"Binomial computation overflow: {e}. "
-                f"Falling back to manual summation for n_matches={self.n_matches}, "
-                f"max={max_possible_matches}, p_Q={self.p_Q:.6e}"
-            )
+        if self.p_Q == 0.0:
             pvalue = 0.0
-            for j in range(self.n_matches, max_possible_matches + 1):
-                try:
-                    pvalue += float(binom.pmf(j, max_possible_matches, self.p_Q))
-                except OverflowError:
-                    pvalue += 0.0
+        elif self.p_Q == 1.0:
+            pvalue = 1.0
+        elif self.n_matches >= max_possible_matches:
+            logger.warning(
+                f"Degenerate case: n_matches={self.n_matches} >= "
+                f"max_possible_matches={max_possible_matches}. Returning NaN."
+            )
+            pvalue = float("nan")
+        else:
+            pvalue = float(binom.sf(self.n_matches - 1, max_possible_matches, self.p_Q))
 
-        if idd_correction:
-            pvalue = min(1.0, pvalue * math.comb(data_n_variables, len(self.variables)))
+            if idd_correction:
+                pvalue = min(1.0, pvalue * math.comb(data_n_variables, len(self.variables)))
 
         self.pvalue = pvalue
-        logging.info("p_value = %.3E (p_pattern = %.3E)", self.pvalue, self.p_Q)
+        logger.info("p_value = %.3E (p_pattern = %.3E)", self.pvalue, self.p_Q)
         return pvalue
