@@ -1,10 +1,10 @@
-import numpy as np
-import math
 import logging
+import math
 from collections.abc import Iterable, Sequence
 from typing import Any
-from scipy.stats import norm, binom, gaussian_kde, multivariate_normal
 
+import numpy as np
+from scipy.stats import binom, gaussian_kde, multivariate_normal, norm
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +33,12 @@ def _rect_prob_2d(dist: Any, lo: Sequence[float], hi: Sequence[float]) -> float:
     """
     a1, a2 = lo[0], lo[1]
     b1, b2 = hi[0], hi[1]
-    p = float(dist.cdf([b1, b2])) - float(dist.cdf([a1, b2])) \
-        - float(dist.cdf([b1, a2])) + float(dist.cdf([a1, a2]))
+    p = (
+        float(dist.cdf([b1, b2]))
+        - float(dist.cdf([a1, b2]))
+        - float(dist.cdf([b1, a2]))
+        + float(dist.cdf([a1, a2]))
+    )
     return max(0.0, p)
 
 
@@ -81,39 +85,39 @@ def _rect_prob_1d(model: str, dist, time_series, lo: float, hi: float) -> float:
 def benjamini_hochberg_fdr(p_values: Iterable[float], false_discovery_rate: float = 0.05) -> float:
     """
     Benjamini-Hochberg FDR correction (standard implementation).
-    
+
     Compute the critical value for controlling the False Discovery Rate (FDR)
     using the Benjamini-Hochberg procedure (Benjamini & Hochberg, 1995).
-    
+
     This method controls the expected proportion of false discoveries among
     rejected hypotheses. It is less conservative than Bonferroni correction
     and has greater power for multiple comparisons.
-    
+
     Parameters
     ----------
     p_values : Iterable[float]
         Collection of p-values to correct.
     false_discovery_rate : float, default=0.05
         The desired FDR level (typically 0.05 or 0.01).
-        
+
     Returns
     -------
     float
         The critical p-value threshold. P-values less than or equal to this
         threshold are considered significant after FDR correction.
-        
+
     Notes
     -----
     Follows the original Benjamini & Hochberg (1995) procedure and matches
     implementations in R (p.adjust), Python (statsmodels, scipy).
     Uses non-strict inequality (≤) as per standard practice.
-    
+
     References
     ----------
     Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate:
     a practical and powerful approach to multiple testing. Journal of the Royal
     Statistical Society: Series B, 57(1), 289-300.
-    
+
     Examples
     --------
     >>> p_vals = [0.001, 0.008, 0.039, 0.041, 0.042]
@@ -122,10 +126,10 @@ def benjamini_hochberg_fdr(p_values: Iterable[float], false_discovery_rate: floa
     """
     ordered_pvalue = sorted(p_values)
     n = len(ordered_pvalue)
-    
+
     if n == 0:
         return 0.0
-    
+
     critical_values = [(i / n) * false_discovery_rate for i in range(1, n + 1)]
     critical_val = ordered_pvalue[-1]
 
@@ -182,7 +186,7 @@ def bonferroni_correction(n_tests: int | Iterable[float], alpha: float = 0.05) -
 class NullModel:
     """
     Null model for estimating pattern probabilities in multivariate time series motifs.
-    
+
     This class builds a statistical null model from observed data to compute the
     probability that a specific pattern occurs by chance. Three modeling approaches
     are supported: empirical (frequency-based), kernel density estimation (KDE),
@@ -199,14 +203,14 @@ class NullModel:
         the number of variables (rows) in data.
     model : {'empirical', 'kde', 'gaussian_theoretical'}, default='empirical'
         The type of null model to use:
-        
+
         - 'empirical': Frequency-based probabilities from observed data.
           Works with any data type (int, float, str).
         - 'kde': Kernel Density Estimation for smooth probability densities.
           Requires all variables to be float type.
         - 'gaussian_theoretical': Assumes Gaussian distribution with observed
           mean and standard deviation. Requires all variables to be float type.
-          
+
     Raises
     ------
     ValueError
@@ -217,7 +221,7 @@ class NullModel:
         If an invalid model type is specified.
     ValueError
         If data contains insufficient time points for the model.
-        
+
     Attributes
     ----------
     data : np.ndarray
@@ -241,7 +245,7 @@ class NullModel:
     >>> import numpy as np
     >>> data = np.random.randn(3, 100)  # 3 variables, 100 time points
     >>> model = NullModel(data, dtypes=[float, float, float], model='empirical')
-    
+
     >>> # For categorical data
     >>> cat_data = np.array([['A', 'B', 'A', 'C'], ['X', 'Y', 'X', 'X']])
     >>> model = NullModel(cat_data, dtypes=[str, str], model='empirical')
@@ -250,24 +254,26 @@ class NullModel:
     def __init__(self, data: np.ndarray, dtypes: Sequence[type], model: str = "empirical") -> None:
         # Validate inputs
         self.data: np.ndarray = np.asarray(data)
-        
+
         if self.data.ndim != 2:
-            raise ValueError(f"Data must be 2-dimensional (variables × time points), got shape {self.data.shape}")
-        
+            raise ValueError(
+                f"Data must be 2-dimensional (variables × time points), got shape {self.data.shape}"
+            )
+
         if len(dtypes) != self.data.shape[0]:
             raise ValueError(
                 f"Number of dtypes ({len(dtypes)}) must match number of variables "
                 f"({self.data.shape[0]})"
             )
-        
+
         if self.data.shape[1] < 2:
             raise ValueError(f"Data must have at least 2 time points, got {self.data.shape[1]}")
-        
-        if model not in ['empirical', 'kde', 'gaussian_theoretical']:
+
+        if model not in ["empirical", "kde", "gaussian_theoretical"]:
             raise ValueError(
                 f"Invalid model '{model}'. Must be one of: 'empirical', 'kde', 'gaussian_theoretical'"
             )
-        
+
         self.dtypes: tuple[type, ...] = tuple(dtypes)
         self.model: str = model
         self.pre_computed_distribution: dict[int, Any] = {}
@@ -306,7 +312,9 @@ class NullModel:
                     )
                     std_dev = 1e-10
                 self.pre_computed_distribution[var_index] = norm(np.mean(y_j), std_dev)
-                self.pre_computed_bivariate_distribution[var_index] = multivariate_normal(means, np.cov(pairs))
+                self.pre_computed_bivariate_distribution[var_index] = multivariate_normal(
+                    means, np.cov(pairs)
+                )
 
     def vars_indep_time_markov(
         self,
@@ -316,11 +324,11 @@ class NullModel:
     ) -> float:
         """
         Estimate pattern probability assuming independent variables and first-order Markov time dependency.
-        
+
         Computes the probability of observing a specific multivariate pattern under the
         assumption that different variables are independent of each other, but temporal
         dependencies within each variable follow a first-order Markov process.
-        
+
         Parameters
         ----------
         motif_subsequence : Sequence[np.ndarray]
@@ -333,28 +341,28 @@ class NullModel:
             Per-variable tolerance thresholds for pattern matching. For continuous
             variables, this defines the width of the matching interval. For discrete
             variables, use 0 for exact matching.
-            
+
         Returns
         -------
         float
             The estimated pattern probability P(Q) where 0 ≤ P(Q) ≤ 1.
             Returns 0.0 if the pattern is impossible under the null model.
-            
+
         Notes
         -----
         The probability is computed as:
-        
+
         P(Q) = ∏_{j} P(Q_j)
-        
+
         where P(Q_j) for each variable j is:
-        
+
         P(Q_j) = P(x_0^j) ∏_{t=1}^{L-1} P(x_t^j | x_{t-1}^j)
-        
+
         using the first-order Markov assumption P(x_t | x_{t-1}).
-        
+
         If conditional probabilities exceed 1.0 (due to numerical issues in KDE
         integration), they are clamped to 1.0 with a debug warning.
-        
+
         Examples
         --------
         >>> model = NullModel(data, dtypes=[float, float], model='empirical')
@@ -366,7 +374,9 @@ class NullModel:
         # For each subsequence variable
         for seq_idx, subsequence in enumerate(motif_subsequence):
             var_index = variables[seq_idx]
-            delta = delta_thresholds[seq_idx]  # Use seq_idx: delta_thresholds aligns with motif_subsequence
+            delta = delta_thresholds[
+                seq_idx
+            ]  # Use seq_idx: delta_thresholds aligns with motif_subsequence
             p_Q_j: float = 1.0
 
             if delta == 0 and self.model != "empirical":
@@ -378,7 +388,7 @@ class NullModel:
 
             # Use dtype that corresponds to the variable index in original data
             dtype = self.dtypes[var_index]
-            time_series = np.array(self.data[var_index], dtype=dtype)
+            time_series: np.ndarray = np.array(self.data[var_index], dtype=dtype)
             subsequence = np.array(subsequence, dtype=dtype)
 
             if self.model != "empirical":
@@ -403,7 +413,10 @@ class NullModel:
             for i in range(1, len(subsequence)):
                 if delta != 0:
                     xi_lower, xi_upper = subsequence[i] - delta, subsequence[i] + delta
-                    ximinus1_lower, ximinus1_upper = subsequence[i - 1] - delta, subsequence[i - 1] + delta
+                    ximinus1_lower, ximinus1_upper = (
+                        subsequence[i - 1] - delta,
+                        subsequence[i - 1] + delta,
+                    )
                 else:
                     xi_lower = xi_upper = subsequence[i]
                     ximinus1_lower = ximinus1_upper = subsequence[i - 1]
@@ -423,8 +436,13 @@ class NullModel:
                             )
                         else:
                             count_pair = np.sum(
-                                np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper)
-                                & np.logical_and(time_series[1:] >= xi_lower, time_series[1:] <= xi_upper)
+                                np.logical_and(
+                                    time_series[:-1] >= ximinus1_lower,
+                                    time_series[:-1] <= ximinus1_upper,
+                                )
+                                & np.logical_and(
+                                    time_series[1:] >= xi_lower, time_series[1:] <= xi_upper
+                                )
                             )
                         numerator = count_pair / n_transitions
 
@@ -433,11 +451,18 @@ class NullModel:
                             count_marginal = np.sum(time_series[:-1] == subsequence[i - 1])
                         else:
                             count_marginal = np.sum(
-                                np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper)
+                                np.logical_and(
+                                    time_series[:-1] >= ximinus1_lower,
+                                    time_series[:-1] <= ximinus1_upper,
+                                )
                             )
                         denominator = count_marginal / n_transitions if count_marginal > 0 else 1.0
                 elif self.model == "kde":
-                    numerator = float(dist_bivar.integrate_box([ximinus1_lower, xi_lower], [ximinus1_upper, xi_upper]))
+                    numerator = float(
+                        dist_bivar.integrate_box(
+                            [ximinus1_lower, xi_lower], [ximinus1_upper, xi_upper]
+                        )
+                    )
                     # Use the lag-1 marginal so numerator/denominator share the same model
                     dist_lag1 = self.pre_computed_lag1_marginal[var_index]
                     denominator = float(dist_lag1.integrate_box_1d(ximinus1_lower, ximinus1_upper))
@@ -461,7 +486,7 @@ class NullModel:
                             f"position {i}. Clamping to 1.0. This may indicate numerical precision issues."
                         )
                         cond_p = 1.0
-                
+
                 p_Q_j *= cond_p
 
             logger.debug("subsequence=%s p_Q_j=%E", subsequence, p_Q_j)
@@ -469,7 +494,9 @@ class NullModel:
 
         return float(p_Q)
 
-    def vars_dep_time_markov(self, motif_subsequence: Sequence[np.ndarray], variables: Sequence[int]) -> float:
+    def vars_dep_time_markov(
+        self, motif_subsequence: Sequence[np.ndarray], variables: Sequence[int]
+    ) -> float:
         """
         Estimate pattern probability assuming dependent variables and first-order Markov time dependency.
 
@@ -499,11 +526,11 @@ class NullModel:
 class Motif:
     """
     Represents a multivariate time series motif with statistical significance testing.
-    
+
     A motif is a recurrent pattern in multivariate time series data. This class
     stores the pattern definition, its occurrence count, and statistical measures
     (pattern probability and p-value) computed against a null model.
-    
+
     Parameters
     ----------
     multivar_sequence : Sequence[np.ndarray]
@@ -524,7 +551,7 @@ class Motif:
     pvalue : float, default=1.0
         Statistical significance p-value from binomial test.
         Set to 1.0 initially (most conservative) and computed via set_significance().
-        
+
     Attributes
     ----------
     multivar_sequence : Sequence[np.ndarray]
@@ -539,25 +566,25 @@ class Motif:
         Pattern probability under the null model.
     pvalue : float
         Statistical significance p-value.
-        
+
     Raises
     ------
     ValueError
         If n_matches is not positive.
     ValueError
         If array lengths don't match (multivar_sequence, variables, delta_thresholds).
-        
+
     Examples
     --------
     >>> import numpy as np
     >>> from msig import Motif, NullModel
-    >>> 
+    >>>
     >>> # Create a motif representing a pattern found 15 times
     >>> pattern = [np.array([1.0, 2.0, 3.0]), np.array([4.0, 5.0, 6.0])]
     >>> variables = [0, 1]  # First two variables
     >>> thresholds = [0.1, 0.1]  # 0.1 tolerance for both
     >>> motif = Motif(pattern, variables, thresholds, n_matches=15)
-    >>> 
+    >>>
     >>> # Compute statistical significance
     >>> data = np.random.randn(2, 1000)
     >>> null_model = NullModel(data, dtypes=[float, float])
@@ -565,6 +592,7 @@ class Motif:
     >>> motif.set_significance(max_possible_matches=998, data_n_variables=2)
     >>> print(f"p-value: {motif.pvalue:.4f}")
     """
+
     def __init__(
         self,
         multivar_sequence: Sequence[np.ndarray],
@@ -577,7 +605,7 @@ class Motif:
         # Validate n_matches
         if n_matches <= 0:
             raise ValueError(f"n_matches must be positive, got {n_matches}")
-        
+
         # Validate array lengths match
         if not (len(multivar_sequence) == len(variables) == len(delta_thresholds)):
             raise ValueError(
@@ -585,7 +613,7 @@ class Motif:
                 f"variables={len(variables)}, delta_thresholds={len(delta_thresholds)}. "
                 "All must have the same length."
             )
-        
+
         self.multivar_sequence = multivar_sequence
         self.variables = variables
         self.delta_thresholds = delta_thresholds
@@ -596,7 +624,7 @@ class Motif:
     def set_pattern_probability(self, model: NullModel, vars_indep: bool = True) -> float:
         """
         Compute and set the probability of this pattern under a null model.
-        
+
         Parameters
         ----------
         model : NullModel
@@ -604,24 +632,26 @@ class Motif:
         vars_indep : bool, default=True
             If True, assumes variables are independent (uses vars_indep_time_markov).
             If False, assumes variables are dependent (not yet implemented).
-            
+
         Returns
         -------
         float
             The computed pattern probability, also stored in self.p_Q.
-            
+
         Raises
         ------
         NotImplementedError
             If vars_indep=False (variable dependency not yet implemented).
-            
+
         Examples
         --------
         >>> motif.set_pattern_probability(null_model, vars_indep=True)
         0.00234
         """
         self.p_Q = (
-            model.vars_indep_time_markov(self.multivar_sequence, self.variables, self.delta_thresholds)
+            model.vars_indep_time_markov(
+                self.multivar_sequence, self.variables, self.delta_thresholds
+            )
             if vars_indep
             else model.vars_dep_time_markov(self.multivar_sequence, self.variables)
         )

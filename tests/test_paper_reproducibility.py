@@ -7,8 +7,9 @@ Marked @pytest.mark.slow; opt in with `pytest -m slow`.
 """
 
 import os
-import pytest
+
 import pandas as pd
+import pytest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
@@ -21,7 +22,12 @@ CASES = [
     ("audio", "momenti", None, "summary_motifs_momenti.csv"),
     ("populationdensity", "stumpy", "stumpy_relaxed", "summary_motifs_stumpy_relaxed.csv"),
     ("populationdensity", "stumpy", "stumpy_moderate", "summary_motifs_stumpy_moderate.csv"),
-    ("populationdensity", "stumpy", "stumpy_conservative", "summary_motifs_stumpy_conservative.csv"),
+    (
+        "populationdensity",
+        "stumpy",
+        "stumpy_conservative",
+        "summary_motifs_stumpy_conservative.csv",
+    ),
     ("populationdensity", "lama_iterative", None, "summary_motifs_lama_iterative.csv"),
     ("populationdensity", "momenti", None, "summary_motifs_momenti.csv"),
     ("washingmachine", "stumpy", "stumpy_relaxed", "summary_motifs_stumpy_relaxed.csv"),

@@ -4,8 +4,9 @@ Basic tests for MSig core functionality.
 Run with: pytest tests/
 """
 
-import pytest
 import numpy as np
+import pytest
+
 from msig import Motif, NullModel
 
 
@@ -16,19 +17,21 @@ class TestNullModel:
         """Test that empirical model is created correctly."""
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         assert model.model == "empirical"
         assert model.data.shape == (1, 5)
         assert len(model.dtypes) == 1
 
     def test_multiple_variables(self):
         """Test model with multiple variables."""
-        data = np.stack([
-            np.array([1, 2, 3, 4, 5], dtype=int),
-            np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=float),
-            np.array(['A', 'B', 'C', 'D', 'E'], dtype=str)
-        ])
-        
+        data = np.stack(
+            [
+                np.array([1, 2, 3, 4, 5], dtype=int),
+                np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=float),
+                np.array(["A", "B", "C", "D", "E"], dtype=str),
+            ]
+        )
+
         model = NullModel(data, dtypes=[int, float, str], model="empirical")
         assert model.data.shape == (3, 5)
         assert len(model.dtypes) == 3
@@ -36,14 +39,14 @@ class TestNullModel:
     def test_invalid_model_type(self):
         """Test that invalid model type raises error."""
         data = np.array([[1, 2, 3]], dtype=float)
-        
+
         with pytest.raises(ValueError, match="Invalid model"):
             NullModel(data, dtypes=[float], model="invalid_model")
 
     def test_incompatible_dtype_kde(self):
         """Test that KDE with non-float data raises error."""
         data = np.array([[1, 2, 3]], dtype=int)
-        
+
         with pytest.raises(ValueError, match="requires all variables to be float type"):
             NullModel(data, dtypes=[int], model="kde")
 
@@ -51,7 +54,7 @@ class TestNullModel:
         """Test Gaussian theoretical model."""
         data = np.random.randn(2, 100)
         model = NullModel(data, dtypes=[float, float], model="gaussian_theoretical")
-        
+
         assert model.model == "gaussian_theoretical"
         assert len(model.pre_computed_distribution) == 2
 
@@ -62,13 +65,8 @@ class TestMotif:
     def test_motif_creation(self):
         """Test basic motif creation."""
         pattern = np.array([[1, 2, 3]])
-        motif = Motif(
-            multivar_sequence=pattern,
-            variables=[0],
-            delta_thresholds=[0],
-            n_matches=3
-        )
-        
+        motif = Motif(multivar_sequence=pattern, variables=[0], delta_thresholds=[0], n_matches=3)
+
         assert motif.n_matches == 3
         assert len(motif.variables) == 1
         assert motif.p_Q == 0.0  # Initial value
@@ -79,12 +77,12 @@ class TestMotif:
         # Simple repeating pattern
         data = np.array([[1, 2, 1, 2, 1, 2, 1, 2]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         pattern = np.array([[1, 2]])
         motif = Motif(pattern, [0], [0], n_matches=4)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         assert 0 <= prob <= 1
         assert motif.p_Q == prob
 
@@ -92,47 +90,46 @@ class TestMotif:
         """Test significance calculation."""
         data = np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         pattern = np.array([[1, 2]])
         motif = Motif(pattern, [0], [0.5], n_matches=3)
-        
+
         # Set pattern probability
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         # Calculate significance
         max_matches = 8 - 2 + 1  # n - motif_length + 1
         pvalue = motif.set_significance(max_matches, 1, idd_correction=False)
-        
+
         assert 0 <= pvalue <= 1
         assert motif.pvalue == pvalue
 
     def test_benjamini_hochberg_fdr(self):
         """Test Benjamini-Hochberg FDR correction (module-level function)."""
         from msig import benjamini_hochberg_fdr
-        
+
         pvalues = np.array([0.001, 0.01, 0.02, 0.05, 0.1])
         alpha = 0.05
-        
+
         critical = benjamini_hochberg_fdr(pvalues, alpha)
-        
+
         assert 0 <= critical <= alpha
         assert isinstance(critical, float)
 
     def test_multivariate_pattern(self):
         """Test motif with multiple variables."""
-        data = np.stack([
-            np.array([1, 2, 3, 4, 5], dtype=float),
-            np.array([10, 20, 30, 40, 50], dtype=float)
-        ])
-        
+        data = np.stack(
+            [np.array([1, 2, 3, 4, 5], dtype=float), np.array([10, 20, 30, 40, 50], dtype=float)]
+        )
+
         model = NullModel(data, dtypes=[float, float], model="empirical")
-        
+
         pattern = np.array([[1, 2], [10, 20]])
         motif = Motif(pattern, [0, 1], [0.1, 1.0], n_matches=2)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
         pvalue = motif.set_significance(4, 2, idd_correction=False)
-        
+
         assert 0 <= prob <= 1
         assert 0 <= pvalue <= 1
 
@@ -144,51 +141,53 @@ class TestEdgeCases:
         """Test with minimum required data (2 time points)."""
         data = np.array([[1.0, 2.0]])
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         assert model.data.shape == (1, 2)
 
     def test_zero_probability_pattern(self):
         """Test pattern with zero probability."""
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
         model = NullModel(data, dtypes=[float], model="empirical")
-        
+
         # Pattern that never occurs
         pattern = np.array([[99]])
         motif = Motif(pattern, [0], [0], n_matches=1)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
         pvalue = motif.set_significance(5, 1, idd_correction=False)
-        
+
         assert prob == 0.0
         assert pvalue == 0.0  # Special case for p_Q = 0
 
     def test_categorical_data(self):
         """Test with categorical (string) data."""
-        data = np.array([['A', 'B', 'A', 'B', 'A']], dtype=str)
+        data = np.array([["A", "B", "A", "B", "A"]], dtype=str)
         model = NullModel(data, dtypes=[str], model="empirical")
-        
-        pattern = np.array([['A']])
+
+        pattern = np.array([["A"]])
         motif = Motif(pattern, [0], [0], n_matches=3)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         assert 0 <= prob <= 1
 
     def test_mixed_datatypes(self):
         """Test with mixed data types."""
-        data = np.stack([
-            np.array([1, 2, 3, 4, 5], dtype=int),
-            np.array([1.1, 2.2, 3.3, 4.4, 5.5], dtype=float),
-            np.array(['A', 'B', 'C', 'D', 'E'], dtype=str)
-        ])
-        
+        data = np.stack(
+            [
+                np.array([1, 2, 3, 4, 5], dtype=int),
+                np.array([1.1, 2.2, 3.3, 4.4, 5.5], dtype=float),
+                np.array(["A", "B", "C", "D", "E"], dtype=str),
+            ]
+        )
+
         model = NullModel(data, dtypes=[int, float, str], model="empirical")
-        
-        pattern = np.array([[1], [1.1], ['A']])
+
+        pattern = np.array([[1], [1.1], ["A"]])
         motif = Motif(pattern, [0, 1, 2], [0, 0.1, 0], n_matches=1)
-        
+
         prob = motif.set_pattern_probability(model, vars_indep=True)
-        
+
         assert 0 <= prob <= 1
 
 
@@ -198,6 +197,7 @@ class TestRectangleProbability:
     def test_rect_prob_2d_independent_standard_normals(self):
         """For independent N(0,1)×N(0,1), P(-1≤X≤1, -1≤Y≤1) = (Φ(1)-Φ(-1))²."""
         from scipy.stats import multivariate_normal, norm
+
         from msig.MSig import _rect_prob_2d
 
         dist = multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]])
@@ -208,6 +208,7 @@ class TestRectangleProbability:
     def test_rect_prob_2d_correlated(self):
         """Inclusion-exclusion against scipy.stats.multivariate_normal four-corner formula."""
         from scipy.stats import multivariate_normal
+
         from msig.MSig import _rect_prob_2d
 
         cov = [[1.0, 0.5], [0.5, 1.0]]
@@ -223,6 +224,7 @@ class TestRectangleProbability:
         """When all four corners are nearly equal, fp arithmetic can produce a tiny
         negative value; helper must clamp to 0."""
         from scipy.stats import multivariate_normal
+
         from msig.MSig import _rect_prob_2d
 
         dist = multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]])
@@ -240,6 +242,7 @@ class TestGaussianTheoreticalConditional:
         p_Q must match a hand-computed value using norm.cdf and inclusion-exclusion."""
         import numpy as np
         from scipy.stats import multivariate_normal, norm
+
         from msig import Motif, NullModel
         from msig.MSig import _rect_prob_2d
 
@@ -275,6 +278,7 @@ class TestGaussianTheoreticalConditional:
     def test_gaussian_theoretical_p_q_lt_or_eq_one(self):
         """The pre-fix bug could produce p_Q values exceeding 1 in some configurations."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         np.random.seed(1)
@@ -292,6 +296,7 @@ class TestDeltaValidation:
     def test_gaussian_theoretical_rejects_delta_zero(self):
         import numpy as np
         import pytest
+
         from msig import Motif, NullModel
 
         data = np.random.randn(1, 50)
@@ -303,6 +308,7 @@ class TestDeltaValidation:
     def test_kde_rejects_delta_zero(self):
         import numpy as np
         import pytest
+
         from msig import Motif, NullModel
 
         data = np.random.randn(1, 50)
@@ -314,6 +320,7 @@ class TestDeltaValidation:
     def test_empirical_accepts_delta_zero(self):
         """Empirical with δ = 0 is the standard exact-match path, must not raise."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 2, 1, 2, 1, 2]], dtype=float)
@@ -329,8 +336,10 @@ class TestEmpiricalConditionalConsistency:
     def test_no_clamp_triggered_on_random_series(self):
         """Across many random series and motifs, cond_p must satisfy 0 ≤ cond_p ≤ 1
         without invoking the clamp at line 358."""
-        import numpy as np
         import logging
+
+        import numpy as np
+
         from msig import Motif, NullModel
 
         np.random.seed(42)
@@ -345,6 +354,7 @@ class TestEmpiricalConditionalConsistency:
     def test_empirical_conditional_against_hand_computed(self):
         """Hand-compute the conditional for a tiny series; assert exact agreement."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         # 6-point series; 5 transition pairs.
@@ -368,6 +378,7 @@ class TestKDEConditional:
     def test_kde_p_q_in_bounds(self):
         """KDE p_Q must be in [0, 1]."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         np.random.seed(7)
@@ -381,6 +392,7 @@ class TestKDEConditional:
     def test_kde_lag1_marginal_attribute_exists(self):
         """NullModel.pre_computed_lag1_marginal must exist for kde models."""
         import numpy as np
+
         from msig import NullModel
 
         data = np.random.randn(1, 50)
@@ -390,6 +402,7 @@ class TestKDEConditional:
     def test_kde_agrees_with_empirical_on_large_sample(self):
         """KDE and empirical should agree within 25% on 1000-sample N(0,1) data."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         np.random.seed(0)
@@ -413,6 +426,7 @@ class TestSetSignificanceAlwaysSetsPvalue:
 
     def test_p_q_zero_sets_self_pvalue(self):
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
@@ -426,6 +440,7 @@ class TestSetSignificanceAlwaysSetsPvalue:
 
     def test_p_q_one_sets_self_pvalue(self):
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 1, 1, 1, 1]], dtype=float)
@@ -439,7 +454,9 @@ class TestSetSignificanceAlwaysSetsPvalue:
     def test_n_matches_ge_max_sets_self_pvalue(self):
         """Degenerate case n_matches >= max_possible_matches returns NaN."""
         import math
+
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.array([[0.5] * 20], dtype=float)
@@ -458,6 +475,7 @@ class TestPatternProbFloor:
     def test_floor_none_preserves_zero_pvalue(self):
         """Default floor=None ⇒ same as current behaviour."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
@@ -471,6 +489,7 @@ class TestPatternProbFloor:
         """floor=1/(N+1) substitutes the floor for p_Q before binomial tail."""
         import numpy as np
         from scipy.stats import binom
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 2, 3, 4, 5]], dtype=float)
@@ -487,6 +506,7 @@ class TestPatternProbFloor:
         """When p_Q > 0 the floor is irrelevant."""
         import numpy as np
         from scipy.stats import binom
+
         from msig import Motif, NullModel
 
         data = np.array([[1, 2, 1, 2, 1, 2]], dtype=float)
@@ -507,8 +527,9 @@ class TestSetSignificanceNumerical:
     """Lock in P(X >= k) = binom.sf(k-1, N, p) so future drift is caught."""
 
     def test_binomial_tail_exact(self):
-        from scipy.stats import binom
         import numpy as np
+        from scipy.stats import binom
+
         from msig import Motif, NullModel
 
         # Construct a motif with known p_Q via a controlled empirical series.
@@ -526,8 +547,10 @@ class TestSetSignificanceNumerical:
     def test_idd_correction_factor_exact(self):
         """idd_correction=True multiplies pvalue by C(m,q) capped at 1."""
         import math
+
         import numpy as np
         from scipy.stats import binom
+
         from msig import Motif, NullModel
 
         data = np.random.RandomState(0).randn(2, 50)
@@ -555,6 +578,7 @@ class TestSetSignificanceNumerical:
     def test_idd_correction_q_equals_m_is_identity(self):
         """When q == m, C(m,m) = 1 => corrected = uncorrected."""
         import numpy as np
+
         from msig import Motif, NullModel
 
         data = np.random.RandomState(0).randn(3, 50)
@@ -576,38 +600,44 @@ class TestRectangleProbability1D:
 
     def test_empirical_with_delta(self):
         import numpy as np
+
         from msig.MSig import _rect_prob_1d
+
         ts = np.array([1.0, 2.0, 1.0, 2.0, 1.0])
         # P(0.5 ≤ x ≤ 1.5) = 3/5 = 0.6
-        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts,
-                                lo=0.5, hi=1.5)
+        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts, lo=0.5, hi=1.5)
         assert abs(result - 0.6) < 1e-12
 
     def test_empirical_delta_zero(self):
         import numpy as np
+
         from msig.MSig import _rect_prob_1d
+
         ts = np.array([1.0, 2.0, 1.0, 2.0, 1.0])
-        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts,
-                                lo=2.0, hi=2.0)
+        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts, lo=2.0, hi=2.0)
         assert abs(result - 0.4) < 1e-12
 
     def test_gaussian_theoretical(self):
         from scipy.stats import norm
+
         from msig.MSig import _rect_prob_1d
-        result = _rect_prob_1d(model="gaussian_theoretical", dist=norm(0, 1),
-                                time_series=None, lo=-1.0, hi=1.0)
+
+        result = _rect_prob_1d(
+            model="gaussian_theoretical", dist=norm(0, 1), time_series=None, lo=-1.0, hi=1.0
+        )
         expected = float(norm.cdf(1) - norm.cdf(-1))
         assert abs(result - expected) < 1e-12
 
     def test_kde(self):
         import numpy as np
         from scipy.stats import gaussian_kde
+
         from msig.MSig import _rect_prob_1d
+
         np.random.seed(0)
         ts = np.random.randn(500)
         kde = gaussian_kde(ts)
-        result = _rect_prob_1d(model="kde", dist=kde, time_series=None,
-                                lo=-1.0, hi=1.0)
+        result = _rect_prob_1d(model="kde", dist=kde, time_series=None, lo=-1.0, hi=1.0)
         # Should be close to 0.6827 for standard normal
         assert 0.5 < result < 0.85
 

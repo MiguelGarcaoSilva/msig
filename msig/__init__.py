@@ -8,8 +8,8 @@ except PackageNotFoundError:  # editable install before package is registered
     __version__ = "0.0.0+unknown"
 
 from .MSig import (
-    NullModel,
     Motif,
+    NullModel,
     benjamini_hochberg_fdr,
     bonferroni_correction,
 )

@@ -7,8 +7,9 @@ Marked @pytest.mark.integration; opt in with `pytest -m integration`.
 """
 
 import os
-import sys
 import subprocess
+import sys
+
 import pytest
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -30,9 +31,11 @@ def test_compare_results_runs_against_existing_csvs(tmp_path):
     out = tmp_path / "compare.md"
     csv = tmp_path / "compare.csv"
     result = subprocess.run(
-        [sys.executable, "scripts/compare_results.py",
-         "--output", str(out), "--csv", str(csv)],
-        cwd=REPO_ROOT, capture_output=True, text=True, timeout=60,
+        [sys.executable, "scripts/compare_results.py", "--output", str(out), "--csv", str(csv)],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
     assert result.returncode == 0, result.stderr
     assert out.exists()
