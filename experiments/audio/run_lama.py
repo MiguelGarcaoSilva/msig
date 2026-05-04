@@ -31,6 +31,12 @@ logger = logging.getLogger(__name__)
 # with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
 EXCLUSION_ZONE_FACTOR: float = 0.5
 
+# Per-variable approximate-match tolerance δ used to derive the maximum
+# allowed Z-normalized Euclidean distance between motif occurrences.
+# See paper §3.3 for D_max formulas; this value is identical across
+# datasets in the published experiments.
+AVERAGE_DELTA: float = 0.3
+
 
 def load_audio_data(audio_path: str) -> Tuple[np.ndarray, pd.DataFrame, int, int]:
     """
@@ -409,8 +415,10 @@ def compute_motif_statistics_lama(
         # Compute significance
         motif_obj = Motif(multivar_subsequence, dimensions, delta_thresholds, n_matches)
         p_pattern = motif_obj.set_pattern_probability(model_empirical, vars_indep=True)
+        # Variables are not identically distributed (different scales/units/dynamics);
+        # see REPRODUCING_EXPERIMENTS.md §IDD applicability.
         p_value = motif_obj.set_significance(max_possible_matches, n_vars, idd_correction=False)
-        
+
         # Create row
         stats_row = {
             "ID": f"lama_{motif_idx}",
@@ -504,7 +512,7 @@ def main():
     
     # Parameters
     normalize = True
-    average_delta = 0.3
+    average_delta = AVERAGE_DELTA
     max_motifs_per_length = 20  # Try to find up to 20 motifs per length
     n_jobs = -1  # Use all available CPUs
     
