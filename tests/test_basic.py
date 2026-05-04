@@ -571,6 +571,47 @@ class TestSetSignificanceNumerical:
         assert p_no == p_with
 
 
+class TestRectangleProbability1D:
+    """Tests for the private _rect_prob_1d dispatcher."""
+
+    def test_empirical_with_delta(self):
+        import numpy as np
+        from msig.MSig import _rect_prob_1d
+        ts = np.array([1.0, 2.0, 1.0, 2.0, 1.0])
+        # P(0.5 ≤ x ≤ 1.5) = 3/5 = 0.6
+        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts,
+                                lo=0.5, hi=1.5)
+        assert abs(result - 0.6) < 1e-12
+
+    def test_empirical_delta_zero(self):
+        import numpy as np
+        from msig.MSig import _rect_prob_1d
+        ts = np.array([1.0, 2.0, 1.0, 2.0, 1.0])
+        result = _rect_prob_1d(model="empirical", dist=None, time_series=ts,
+                                lo=2.0, hi=2.0)
+        assert abs(result - 0.4) < 1e-12
+
+    def test_gaussian_theoretical(self):
+        from scipy.stats import norm
+        from msig.MSig import _rect_prob_1d
+        result = _rect_prob_1d(model="gaussian_theoretical", dist=norm(0, 1),
+                                time_series=None, lo=-1.0, hi=1.0)
+        expected = float(norm.cdf(1) - norm.cdf(-1))
+        assert abs(result - expected) < 1e-12
+
+    def test_kde(self):
+        import numpy as np
+        from scipy.stats import gaussian_kde
+        from msig.MSig import _rect_prob_1d
+        np.random.seed(0)
+        ts = np.random.randn(500)
+        kde = gaussian_kde(ts)
+        result = _rect_prob_1d(model="kde", dist=kde, time_series=None,
+                                lo=-1.0, hi=1.0)
+        # Should be close to 0.6827 for standard normal
+        assert 0.5 < result < 0.85
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])

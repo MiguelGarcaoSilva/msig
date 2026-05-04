@@ -38,6 +38,46 @@ def _rect_prob_2d(dist: Any, lo: Sequence[float], hi: Sequence[float]) -> float:
     return max(0.0, p)
 
 
+def _rect_prob_1d(model: str, dist, time_series, lo: float, hi: float) -> float:
+    """
+    Probability of a 1D interval [lo, hi] under one of three null-model branches.
+
+    Parameters
+    ----------
+    model : {'empirical', 'kde', 'gaussian_theoretical'}
+        Which null-model branch to use.
+    dist : object or None
+        For 'kde': scipy.stats.gaussian_kde with `.integrate_box_1d`.
+        For 'gaussian_theoretical': scipy.stats.norm-like with `.cdf`.
+        For 'empirical': ignored (pass None).
+    time_series : np.ndarray or None
+        For 'empirical': the 1D series to count over.
+        For 'kde' and 'gaussian_theoretical': ignored.
+    lo, hi : float
+        Lower and upper bounds. lo == hi means exact match (only meaningful
+        for 'empirical').
+
+    Returns
+    -------
+    float
+        The interval probability in [0, 1].
+    """
+    if model == "empirical":
+        n = len(time_series)
+        if n == 0:
+            return 0.0
+        if lo == hi:
+            count = int(np.sum(time_series == lo))
+        else:
+            count = int(np.sum(np.logical_and(time_series >= lo, time_series <= hi)))
+        return count / n
+    if model == "kde":
+        return float(dist.integrate_box_1d(lo, hi))
+    if model == "gaussian_theoretical":
+        return float(dist.cdf(hi) - dist.cdf(lo))
+    raise ValueError(f"Unknown model '{model}'")
+
+
 def benjamini_hochberg_fdr(p_values: Iterable[float], false_discovery_rate: float = 0.05) -> float:
     """
     Benjamini-Hochberg FDR correction (standard implementation).
@@ -353,15 +393,11 @@ class NullModel:
                 xi_lower = xi_upper = subsequence[0]
 
             if self.model == "empirical":
-                if delta != 0:
-                    count = np.sum(np.logical_and(time_series >= xi_lower, time_series <= xi_upper))
-                else:
-                    count = np.sum(time_series == subsequence[0])
-                p_Q_j *= count / len(time_series) if len(time_series) > 0 else 0.0
+                p_Q_j *= _rect_prob_1d("empirical", None, time_series, xi_lower, xi_upper)
             elif self.model == "kde":
-                p_Q_j *= float(dist.integrate_box_1d(xi_lower, xi_upper))
+                p_Q_j *= _rect_prob_1d("kde", dist, None, xi_lower, xi_upper)
             elif self.model == "gaussian_theoretical":
-                p_Q_j *= float(dist.cdf(xi_upper) - dist.cdf(xi_lower))
+                p_Q_j *= _rect_prob_1d("gaussian_theoretical", dist, None, xi_lower, xi_upper)
 
             # Conditional probabilities for subsequent positions: P(x_t | x_{t-1})
             for i in range(1, len(subsequence)):
