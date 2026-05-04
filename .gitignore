@@ -80,5 +80,11 @@ uv.lock
 *.bak
 .cache/
 
+# Local-only paper draft (never commit)
+manuscript.tex
+
+# Git worktrees (created by superpowers:using-git-worktrees)
+.worktrees/
+
 
 
