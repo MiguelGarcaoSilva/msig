@@ -55,6 +55,15 @@ def test_summary_csv_matches_golden(dataset, method_dir, sub_dir, filename):
     if not os.path.exists(result_path):
         pytest.skip(f"Result missing: {result_path}. Run the experiment first.")
 
+    # Both empty (e.g. STUMPY conservative regime that finds 0 motifs) is a
+    # legitimate match. Mismatched emptiness is a regression.
+    if os.path.getsize(result_path) <= 1 and os.path.getsize(golden_path) <= 1:
+        return
+    if os.path.getsize(result_path) <= 1:
+        pytest.fail(f"Result {result_path} is empty but golden has content")
+    if os.path.getsize(golden_path) <= 1:
+        pytest.fail(f"Golden {golden_path} is empty but result has content")
+
     actual = pd.read_csv(result_path)
     expected = pd.read_csv(golden_path)
 
