@@ -190,7 +190,7 @@ def compute_motif_statistics_momenti(
 def main():
     # Paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, "../data/populationdensity/hourly_saodomingosbenfica.csv")
+    data_path = os.path.join(script_dir, "../../data/populationdensity/hourly_saodomingosbenfica.csv")
     results_dir = os.path.join(script_dir, "../results/populationdensity/momenti")
     os.makedirs(results_dir, exist_ok=True)
     

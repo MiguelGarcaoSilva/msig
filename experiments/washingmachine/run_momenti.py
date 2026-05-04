@@ -196,7 +196,7 @@ def compute_motif_statistics_momenti(
 def main():
     # Paths
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, "../data/washingmachine/main_readings.csv")
+    data_path = os.path.join(script_dir, "../../data/washingmachine/main_readings.csv")
     results_dir = os.path.abspath(os.path.join(script_dir, "../results/washingmachine/momenti"))
     os.makedirs(results_dir, exist_ok=True)
     
