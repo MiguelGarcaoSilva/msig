@@ -286,6 +286,43 @@ class TestGaussianTheoreticalConditional:
         assert 0.0 <= p_Q <= 1.0
 
 
+class TestDeltaValidation:
+    """δ = 0 should raise ValueError for continuous null models."""
+
+    def test_gaussian_theoretical_rejects_delta_zero(self):
+        import numpy as np
+        import pytest
+        from msig import Motif, NullModel
+
+        data = np.random.randn(1, 50)
+        model = NullModel(data, dtypes=[float], model="gaussian_theoretical")
+        motif = Motif(data[:, 5:8], [0], [0.0], n_matches=1)
+        with pytest.raises(ValueError, match="delta must be > 0"):
+            motif.set_pattern_probability(model, vars_indep=True)
+
+    def test_kde_rejects_delta_zero(self):
+        import numpy as np
+        import pytest
+        from msig import Motif, NullModel
+
+        data = np.random.randn(1, 50)
+        model = NullModel(data, dtypes=[float], model="kde")
+        motif = Motif(data[:, 5:8], [0], [0.0], n_matches=1)
+        with pytest.raises(ValueError, match="delta must be > 0"):
+            motif.set_pattern_probability(model, vars_indep=True)
+
+    def test_empirical_accepts_delta_zero(self):
+        """Empirical with δ = 0 is the standard exact-match path, must not raise."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 2, 1, 2, 1, 2]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[1.0, 2.0]]), [0], [0.0], n_matches=3)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+        assert p_Q > 0
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])

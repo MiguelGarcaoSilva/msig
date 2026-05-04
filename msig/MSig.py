@@ -318,6 +318,13 @@ class NullModel:
             delta = delta_thresholds[seq_idx]  # Use seq_idx: delta_thresholds aligns with motif_subsequence
             p_Q_j: float = 1.0
 
+            if delta == 0 and self.model != "empirical":
+                raise ValueError(
+                    f"delta must be > 0 for continuous null models; "
+                    f"got delta=0 with model='{self.model}' for variable {var_index}. "
+                    f"Use model='empirical' for exact matching."
+                )
+
             # Use dtype that corresponds to the variable index in original data
             dtype = self.dtypes[var_index]
             time_series = np.array(self.data[var_index], dtype=dtype)
