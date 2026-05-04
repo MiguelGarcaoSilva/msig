@@ -375,7 +375,11 @@ class NullModel:
                     # Use marginal for the previous state as denominator
                     denominator = float(dist.integrate_box_1d(ximinus1_lower, ximinus1_upper))
                 elif self.model == "gaussian_theoretical":
-                    numerator = float(dist_bivar.cdf([ximinus1_upper, xi_upper]) - dist_bivar.cdf([ximinus1_lower, xi_lower]))
+                    numerator = _rect_prob_2d(
+                        dist_bivar,
+                        lo=[ximinus1_lower, xi_lower],
+                        hi=[ximinus1_upper, xi_upper],
+                    )
                     denominator = float(dist.cdf(ximinus1_upper) - dist.cdf(ximinus1_lower))
 
                 # Avoid division by zero

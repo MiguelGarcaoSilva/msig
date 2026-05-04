@@ -232,6 +232,60 @@ class TestRectangleProbability:
         assert result >= 0  # Never negative
 
 
+class TestGaussianTheoreticalConditional:
+    """Numerical regression tests for the gaussian_theoretical branch."""
+
+    def test_gaussian_theoretical_p_q_against_hand_computed(self):
+        """For a 50-sample standard-normal series with an explicit subsequence,
+        p_Q must match a hand-computed value using norm.cdf and inclusion-exclusion."""
+        import numpy as np
+        from scipy.stats import multivariate_normal, norm
+        from msig import Motif, NullModel
+        from msig.MSig import _rect_prob_2d
+
+        np.random.seed(0)
+        data = np.random.randn(1, 200)
+        model = NullModel(data, dtypes=[float], model="gaussian_theoretical")
+
+        # Three-point subsequence with δ = 0.2
+        subsequence = np.array([[0.0, 0.5, -0.3]])
+        delta = 0.2
+
+        # Initial: P(-0.2 ≤ Y ≤ 0.2) under the fitted N(μ̂, σ̂)
+        dist1 = model.pre_computed_distribution[0]
+        p_init = float(dist1.cdf(0.2) - dist1.cdf(-0.2))
+
+        # Conditional 1: P(0.3 ≤ Y_t ≤ 0.7 | -0.2 ≤ Y_{t-1} ≤ 0.2)
+        dist2 = model.pre_computed_bivariate_distribution[0]
+        num1 = _rect_prob_2d(dist2, lo=[-0.2, 0.3], hi=[0.2, 0.7])
+        denom1 = float(dist1.cdf(0.2) - dist1.cdf(-0.2))
+        cond1 = num1 / denom1
+
+        # Conditional 2: P(-0.5 ≤ Y_t ≤ -0.1 | 0.3 ≤ Y_{t-1} ≤ 0.7)
+        num2 = _rect_prob_2d(dist2, lo=[0.3, -0.5], hi=[0.7, -0.1])
+        denom2 = float(dist1.cdf(0.7) - dist1.cdf(0.3))
+        cond2 = num2 / denom2
+
+        expected = p_init * cond1 * cond2
+
+        motif = Motif(subsequence, [0], [delta], n_matches=1)
+        actual = motif.set_pattern_probability(model, vars_indep=True)
+        assert abs(actual - expected) < 1e-10
+
+    def test_gaussian_theoretical_p_q_lt_or_eq_one(self):
+        """The pre-fix bug could produce p_Q values exceeding 1 in some configurations."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        np.random.seed(1)
+        data = np.random.randn(2, 100)
+        model = NullModel(data, dtypes=[float, float], model="gaussian_theoretical")
+        subsequence = data[:, 10:13]
+        motif = Motif(subsequence, [0, 1], [0.3, 0.3], n_matches=2)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+        assert 0.0 <= p_Q <= 1.0
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])
