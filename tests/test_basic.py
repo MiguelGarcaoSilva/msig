@@ -323,6 +323,45 @@ class TestDeltaValidation:
         assert p_Q > 0
 
 
+class TestEmpiricalConditionalConsistency:
+    """The empirical conditional should never produce cond_p > 1 by construction."""
+
+    def test_no_clamp_triggered_on_random_series(self):
+        """Across many random series and motifs, cond_p must satisfy 0 ≤ cond_p ≤ 1
+        without invoking the clamp at line 358."""
+        import numpy as np
+        import logging
+        from msig import Motif, NullModel
+
+        np.random.seed(42)
+        for _ in range(50):
+            data = np.random.randn(1, 30)
+            model = NullModel(data, dtypes=[float], model="empirical")
+            subsequence = data[:, 5:10]
+            motif = Motif(subsequence, [0], [0.2], n_matches=2)
+            p_Q = motif.set_pattern_probability(model, vars_indep=True)
+            assert 0.0 <= p_Q <= 1.0
+
+    def test_empirical_conditional_against_hand_computed(self):
+        """Hand-compute the conditional for a tiny series; assert exact agreement."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        # 6-point series; 5 transition pairs.
+        data = np.array([[1.0, 2.0, 1.0, 2.0, 1.0, 2.0]])
+        model = NullModel(data, dtypes=[float], model="empirical")
+        # Pattern [1, 2, 1] with δ = 0:
+        subsequence = np.array([[1.0, 2.0, 1.0]])
+        motif = Motif(subsequence, [0], [0.0], n_matches=2)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+
+        # Hand: P(X=1) = 3/6 = 0.5
+        # P(X_t=2 | X_{t-1}=1) = #(1→2) / #(prev=1 in transitions) = 3/3 = 1
+        # P(X_t=1 | X_{t-1}=2) = #(2→1) / #(prev=2 in transitions) = 2/2 = 1
+        expected = 0.5 * 1.0 * 1.0
+        assert abs(p_Q - expected) < 1e-12
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])

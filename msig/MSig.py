@@ -363,20 +363,32 @@ class NullModel:
 
                 # P(A|B) = P(A ∩ B) / P(B)
                 if self.model == "empirical":
-                    if delta == 0:
-                        count = np.sum((time_series[:-1] == subsequence[i - 1]) & (time_series[1:] == subsequence[i]))
+                    n_transitions = len(time_series) - 1
+                    if n_transitions <= 0:
+                        numerator = 0.0
+                        denominator = 1.0
                     else:
-                        count = np.sum(
-                            (np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper))
-                            & (np.logical_and(time_series[1:] >= xi_lower, time_series[1:] <= xi_upper))
-                        )
-                    numerator = count / (len(time_series) - 1) if len(time_series) > 1 else 0.0
+                        # Joint count over n-1 transition pairs
+                        if delta == 0:
+                            count_pair = np.sum(
+                                (time_series[:-1] == subsequence[i - 1])
+                                & (time_series[1:] == subsequence[i])
+                            )
+                        else:
+                            count_pair = np.sum(
+                                np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper)
+                                & np.logical_and(time_series[1:] >= xi_lower, time_series[1:] <= xi_upper)
+                            )
+                        numerator = count_pair / n_transitions
 
-                    if delta == 0:
-                        count = np.sum(time_series == subsequence[i - 1])
-                    else:
-                        count = np.sum(np.logical_and(time_series >= ximinus1_lower, time_series <= ximinus1_upper))
-                    denominator = count / len(time_series) if len(time_series) > 0 else 1.0
+                        # Lag-1 marginal: count over time_series[:-1] divided by n-1
+                        if delta == 0:
+                            count_marginal = np.sum(time_series[:-1] == subsequence[i - 1])
+                        else:
+                            count_marginal = np.sum(
+                                np.logical_and(time_series[:-1] >= ximinus1_lower, time_series[:-1] <= ximinus1_upper)
+                            )
+                        denominator = count_marginal / n_transitions if count_marginal > 0 else 1.0
                 elif self.model == "kde":
                     numerator = float(dist_bivar.integrate_box([ximinus1_lower, xi_lower], [ximinus1_upper, xi_upper]))
                     # Use marginal for the previous state as denominator
