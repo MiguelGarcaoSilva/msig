@@ -23,6 +23,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
+
 
 def load_population_density_data(data_path: str) -> Tuple[np.ndarray, pd.DataFrame]:
     """Load population density data."""
@@ -91,7 +96,7 @@ def compute_motif_statistics_stumpy(
     model_empirical = NullModel(data_norm, dtypes=dtypes, model="empirical")
     
     # Calculate max possible matches
-    r = np.ceil(s / 2) # r is the step size for non-trivial matches
+    r = np.ceil(EXCLUSION_ZONE_FACTOR * s) # r is the step size for non-trivial matches
     max_possible_matches = int(np.floor((n_time - s) / r) + 1)
     
     motif_index = 0

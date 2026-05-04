@@ -19,6 +19,11 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+# Trivial-match exclusion zone, expressed as a fraction of the motif length s.
+# Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated
+# with 0.5. See REPRODUCING_EXPERIMENTS.md for the paper-vs-code reconciliation.
+EXCLUSION_ZONE_FACTOR: float = 0.5
+
 
 def get_environment_info() -> Dict[str, Any]:
     """
