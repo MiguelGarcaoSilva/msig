@@ -186,7 +186,12 @@ class NullModel:
         Pre-computed marginal distributions for each variable.
     pre_computed_bivariate_distribution : dict[int, Any]
         Pre-computed bivariate distributions for first-order Markov modeling.
-        
+    pre_computed_lag1_marginal : dict[int, Any]
+        Pre-computed lag-1 marginal KDE (gaussian_kde(y[:-1])) for each variable.
+        Used as the denominator in KDE conditional probability P(x_t | x_{t-1})
+        so it is consistent with the bivariate KDE built from (y_{t-1}, y_t) pairs.
+        Only populated when model='kde'.
+
     Examples
     --------
     >>> import numpy as np
@@ -223,6 +228,7 @@ class NullModel:
         self.model: str = model
         self.pre_computed_distribution: dict[int, Any] = {}
         self.pre_computed_bivariate_distribution: dict[int, Any] = {}
+        self.pre_computed_lag1_marginal: dict[int, Any] = {}
 
         # Validate dtype compatibility with model
         if any(dtype != float for dtype in dtypes) and model != "empirical":
@@ -246,6 +252,7 @@ class NullModel:
             if self.model == "kde":
                 self.pre_computed_distribution[var_index] = gaussian_kde(y_j)
                 self.pre_computed_bivariate_distribution[var_index] = gaussian_kde(pairs)
+                self.pre_computed_lag1_marginal[var_index] = gaussian_kde(y_j[:-1])
             elif self.model == "gaussian_theoretical":
                 std_dev = np.std(y_j)
                 if std_dev == 0:
@@ -391,8 +398,9 @@ class NullModel:
                         denominator = count_marginal / n_transitions if count_marginal > 0 else 1.0
                 elif self.model == "kde":
                     numerator = float(dist_bivar.integrate_box([ximinus1_lower, xi_lower], [ximinus1_upper, xi_upper]))
-                    # Use marginal for the previous state as denominator
-                    denominator = float(dist.integrate_box_1d(ximinus1_lower, ximinus1_upper))
+                    # Use the lag-1 marginal so numerator/denominator share the same model
+                    dist_lag1 = self.pre_computed_lag1_marginal[var_index]
+                    denominator = float(dist_lag1.integrate_box_1d(ximinus1_lower, ximinus1_upper))
                 elif self.model == "gaussian_theoretical":
                     numerator = _rect_prob_2d(
                         dist_bivar,

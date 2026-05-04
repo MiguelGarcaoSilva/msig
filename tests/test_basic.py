@@ -362,6 +362,52 @@ class TestEmpiricalConditionalConsistency:
         assert abs(p_Q - expected) < 1e-12
 
 
+class TestKDEConditional:
+    """KDE branch coverage and conditional consistency."""
+
+    def test_kde_p_q_in_bounds(self):
+        """KDE p_Q must be in [0, 1]."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        np.random.seed(7)
+        data = np.random.randn(1, 100)
+        model = NullModel(data, dtypes=[float], model="kde")
+        subsequence = data[:, 10:14]
+        motif = Motif(subsequence, [0], [0.3], n_matches=2)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+        assert 0.0 <= p_Q <= 1.0
+
+    def test_kde_lag1_marginal_attribute_exists(self):
+        """NullModel.pre_computed_lag1_marginal must exist for kde models."""
+        import numpy as np
+        from msig import NullModel
+
+        data = np.random.randn(1, 50)
+        model = NullModel(data, dtypes=[float], model="kde")
+        assert 0 in model.pre_computed_lag1_marginal
+
+    def test_kde_agrees_with_empirical_on_large_sample(self):
+        """KDE and empirical should agree within 25% on 1000-sample N(0,1) data."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        np.random.seed(0)
+        data = np.random.randn(1, 1000)
+        subsequence = np.array([[0.1, -0.2, 0.3]])
+
+        m_kde = NullModel(data, dtypes=[float], model="kde")
+        m_emp = NullModel(data, dtypes=[float], model="empirical")
+
+        p_kde = Motif(subsequence, [0], [0.3], 1).set_pattern_probability(m_kde, vars_indep=True)
+        p_emp = Motif(subsequence, [0], [0.3], 1).set_pattern_probability(m_emp, vars_indep=True)
+
+        assert p_kde > 0 and p_emp > 0
+        # Ratio within ±25%
+        ratio = p_kde / p_emp
+        assert 0.75 <= ratio <= 1.25, f"KDE/empirical ratio {ratio:.3f} outside ±25%"
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])
