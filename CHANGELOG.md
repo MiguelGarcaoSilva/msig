@@ -4,7 +4,18 @@ All notable changes to MSig are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] — 2026-05-XX
+## [0.2.1] — 2026-05-04
+
+### Changed
+
+- **README polish for PyPI presentation.** Added PyPI / Python-versions /
+  License / Downloads badges at the top, lifted the citation link
+  above-the-fold, surfaced `CHANGELOG.md`, `REPRODUCING_EXPERIMENTS.md`,
+  and `CONTRIBUTING.md` in the project description, and tightened the
+  one-line summary to mention the *Pattern Recognition Letters* (2026)
+  paper. No code changes; same wheel functionality as 0.2.0.
+
+## [0.2.0] — 2026-05-04
 
 ### Fixed
 

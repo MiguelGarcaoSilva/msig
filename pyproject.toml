@@ -1,6 +1,6 @@
 [project]
 name = "msig"
-version = "0.2.0"
+version = "0.2.1"
 description = "Statistical Significance Criteria for Multivariate Time Series Motifs"
 readme = "README.md"
 license = "MIT"

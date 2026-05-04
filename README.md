@@ -1,8 +1,15 @@
 # MSig
 
-**Statistical Significance Testing for Multivariate Time Series Motifs**
+[![PyPI version](https://img.shields.io/pypi/v/msig.svg)](https://pypi.org/project/msig/)
+[![Python versions](https://img.shields.io/pypi/pyversions/msig.svg)](https://pypi.org/project/msig/)
+[![License: MIT](https://img.shields.io/pypi/l/msig.svg)](https://github.com/MiguelGarcaoSilva/msig/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/pypi/dm/msig.svg)](https://pypi.org/project/msig/)
 
-MSig evaluates whether discovered motifs occur more frequently than expected by chance, using rigorous statistical methods.
+**Statistical-significance testing for multidimensional time-series motifs.**
+
+MSig evaluates whether discovered motifs occur more frequently than expected by chance, using rigorous statistical methods. It accompanies the paper **Silva, Madeira & Henriques (2026), *Pattern Recognition Letters*** — see [Citation](#citation).
+
+> **What's new in 0.2.x:** comprehensive correctness, accessibility, and reproducibility revision. See [`CHANGELOG.md`](CHANGELOG.md) for details, [`REPRODUCING_EXPERIMENTS.md`](REPRODUCING_EXPERIMENTS.md) for paper-vs-code reconciliation, and [`CONTRIBUTING.md`](CONTRIBUTING.md) to get involved.
 
 ## Installation
 
