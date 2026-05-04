@@ -590,14 +590,20 @@ class Motif:
         )
         return self.p_Q
 
-    def set_significance(self, max_possible_matches: int, data_n_variables: int, idd_correction: bool = False) -> float:
+    def set_significance(
+        self,
+        max_possible_matches: int,
+        data_n_variables: int,
+        idd_correction: bool = False,
+        pattern_prob_floor: float | None = None,
+    ) -> float:
         """
         Compute statistical significance (p-value) for the observed pattern occurrences.
-        
+
         Tests whether the observed number of matches is statistically significant
         under the null hypothesis using a binomial test. The p-value represents
         P(X >= n_matches | p_Q), where X ~ Binomial(max_possible_matches, p_Q).
-        
+
         Parameters
         ----------
         max_possible_matches : int
@@ -609,7 +615,18 @@ class Motif:
             If True, applies IDD (Independent Dimension Discovery) correction by
             adjusting p-value using the Benjamini-Hochberg FDR procedure across
             variable subsets. See Notes for details.
-            
+        pattern_prob_floor : float or None, default=None
+            Optional Laplace-style floor for `self.p_Q` before computing
+            the binomial tail. When `self.p_Q == 0` and `pattern_prob_floor`
+            is not None, the floor value replaces zero. Useful when the
+            pattern is unobserved in the reference data but n_matches > 0
+            in the test series; addresses the "zero-frequency problem".
+
+            Common choices: `1.0 / (max_possible_matches + 1)` (Laplace),
+            `3.0 / max_possible_matches` (rule-of-three upper bound).
+
+            Default `None` preserves 0.1.x behaviour: p_Q=0 ⇒ pvalue=0.
+
         Returns
         -------
         float
@@ -617,7 +634,7 @@ class Motif:
             Returns 0.0 if pattern_probability is 0.0 (deterministic pattern).
             Returns 1.0 if pattern_probability is 1.0 (completely random).
             Returns NaN if n_matches >= max_possible_matches (degenerate case).
-            
+
         Raises
         ------
         ValueError
@@ -626,22 +643,22 @@ class Motif:
             If data_n_variables <= 0.
         OverflowError
             If binomial computation overflows (falls back to manual summation).
-            
+
         Notes
         -----
         The binomial test uses the survival function for numerical stability:
         P(X >= k) = sf(k-1) = 1 - cdf(k-1)
-        
+
         IDD Correction:
         When idd_correction=True, the method adjusts for multiple hypothesis testing
         across different variable subsets. For a motif using k variables from m total,
-        there are C(m,k) possible k-variable subsets. 
-        
+        there are C(m,k) possible k-variable subsets.
+
         Examples
         --------
         >>> motif.set_significance(max_possible_matches=1000, data_n_variables=5)
         0.0023
-        >>> 
+        >>>
         >>> # With IDD correction for multiple testing
         >>> motif.set_significance(max_possible_matches=1000, data_n_variables=5, idd_correction=True)
         0.0115
@@ -652,10 +669,13 @@ class Motif:
         if data_n_variables <= 0:
             raise ValueError(f"data_n_variables must be positive, got {data_n_variables}")
 
-        # Handle edge cases
-        if self.p_Q == 0.0:
+        effective_p_Q = self.p_Q
+        if effective_p_Q == 0.0 and pattern_prob_floor is not None:
+            effective_p_Q = float(pattern_prob_floor)
+
+        if effective_p_Q == 0.0:
             pvalue = 0.0
-        elif self.p_Q == 1.0:
+        elif effective_p_Q == 1.0:
             pvalue = 1.0
         elif self.n_matches >= max_possible_matches:
             logger.warning(
@@ -664,7 +684,7 @@ class Motif:
             )
             pvalue = float("nan")
         else:
-            pvalue = float(binom.sf(self.n_matches - 1, max_possible_matches, self.p_Q))
+            pvalue = float(binom.sf(self.n_matches - 1, max_possible_matches, effective_p_Q))
 
             if idd_correction:
                 pvalue = min(1.0, pvalue * math.comb(data_n_variables, len(self.variables)))

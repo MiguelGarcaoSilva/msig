@@ -452,6 +452,57 @@ class TestSetSignificanceAlwaysSetsPvalue:
         assert motif.pvalue == returned or (math.isnan(returned) and math.isnan(motif.pvalue))
 
 
+class TestPatternProbFloor:
+    """Opt-in smoothing of zero pattern probability."""
+
+    def test_floor_none_preserves_zero_pvalue(self):
+        """Default floor=None ⇒ same as current behaviour."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 2, 3, 4, 5]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[99.0]]), [0], [0.0], n_matches=1)
+        motif.set_pattern_probability(model, vars_indep=True)
+        pvalue = motif.set_significance(5, 1, idd_correction=False, pattern_prob_floor=None)
+        assert pvalue == 0.0
+
+    def test_floor_set_smooths_zero_p_q(self):
+        """floor=1/(N+1) substitutes the floor for p_Q before binomial tail."""
+        import numpy as np
+        from scipy.stats import binom
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 2, 3, 4, 5]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[99.0]]), [0], [0.0], n_matches=1)
+        motif.set_pattern_probability(model, vars_indep=True)
+        N = 5
+        floor = 1.0 / (N + 1)
+        pvalue = motif.set_significance(N, 1, idd_correction=False, pattern_prob_floor=floor)
+        expected = float(binom.sf(0, N, floor))
+        assert abs(pvalue - expected) < 1e-12
+
+    def test_floor_does_not_affect_nonzero_p_q(self):
+        """When p_Q > 0 the floor is irrelevant."""
+        import numpy as np
+        from scipy.stats import binom
+        from msig import Motif, NullModel
+
+        data = np.array([[1, 2, 1, 2, 1, 2]], dtype=float)
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[1.0, 2.0]]), [0], [0.0], n_matches=3)
+        motif.set_pattern_probability(model, vars_indep=True)
+        N = 5
+        without_floor = Motif(np.array([[1.0, 2.0]]), [0], [0.0], n_matches=3)
+        without_floor.set_pattern_probability(model, vars_indep=True)
+        with_floor = Motif(np.array([[1.0, 2.0]]), [0], [0.0], n_matches=3)
+        with_floor.set_pattern_probability(model, vars_indep=True)
+        a = without_floor.set_significance(N, 1, pattern_prob_floor=None)
+        b = with_floor.set_significance(N, 1, pattern_prob_floor=0.001)
+        assert a == b
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])
