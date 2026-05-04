@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use MSig in your research, please cite both the software and the paper."
+title: MSig — Statistical Significance for Multivariate Time Series Motifs
+authors:
+  - family-names: Silva
+    given-names: Miguel G.
+    affiliation: "LASIGE, Faculdade de Ciências, Universidade de Lisboa"
+    email: mmgsilva@ciencias.ulisboa.pt
+  - family-names: Madeira
+    given-names: Sara C.
+    affiliation: "LASIGE, Faculdade de Ciências, Universidade de Lisboa"
+  - family-names: Henriques
+    given-names: Rui
+    affiliation: "INESC-ID, IST, Universidade de Lisboa"
+repository-code: "https://github.com/MiguelGarcaoSilva/msig"
+license: MIT
+preferred-citation:
+  type: article
+  authors:
+    - family-names: Silva
+      given-names: Miguel G.
+    - family-names: Madeira
+      given-names: Sara C.
+    - family-names: Henriques
+      given-names: Rui
+  title: "On Why and How Statistical Significance Criteria Can Guide Multivariate Time Series Motif Analysis"
+  journal: "Pattern Recognition Letters"
+  year: 2026
+  publisher: Elsevier

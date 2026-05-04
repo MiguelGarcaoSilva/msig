@@ -47,8 +47,8 @@ model = NullModel(data, dtypes=[float, float, float], model="gaussian_theoretica
 
 # Define a motif: length 10, all 3 sensors, 8 occurrences
 motif_length = 10
-motif_pattern = data[:, 5:15]  # Extract pattern from position 5
 motif_vars = np.array([0, 1, 2])  # Use all sensors
+motif_pattern = data[motif_vars, 5:15]  # Extract pattern from position 5 across selected variables
 delta_thresholds = np.array([0.3, 0.3, 0.3])  # Tolerance for matching
 
 # Create motif and test significance
@@ -162,10 +162,12 @@ uv run python -m pytest tests/ -v          # Run unit tests
 ## Citation
 
 ```bibtex
-@article{silva2024msig,
+@article{silva2026and,
   title={On Why and How Statistical Significance Criteria Can Guide Multivariate Time Series Motif Analysis},
-  author={Silva, Miguel G. and Henriques, Rui and Madeira, Sara C.},
-  year={2024}
+  author={Silva, Miguel G and Madeira, Sara C and Henriques, Rui},
+  journal={Pattern Recognition Letters},
+  year={2026},
+  publisher={Elsevier}
 }
 ```
 
