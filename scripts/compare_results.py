@@ -2,14 +2,16 @@
 """
 Compare MSig experiment results across datasets and methods.
 
-This script generates comprehensive comparison reports from experiment results,
-including statistical summaries, cross-method comparisons, and visualizations.
+This script reads the per-(dataset,method) `summary_motifs_*.csv` files
+produced by the experiment scripts in `experiments/`. The expected schema
+is the v0.2.0 schema:
 
-Usage:
-    python scripts/compare_results.py                    # Generate full report
-    python scripts/compare_results.py --dataset audio    # Compare methods on audio
-    python scripts/compare_results.py --method stumpy    # Compare STUMPY across datasets
-    python scripts/compare_results.py --output report.md # Custom output file
+    s, #motifs, avg_n_matches, avg_n_features, median_probability,
+    median_pvalue, #sig_motifs(≤0.01), significant (percentage),
+    #sig_hochberg
+
+If you maintain forks that produce a different schema, update the
+`ResultsComparator` methods accordingly.
 """
 
 import argparse
@@ -90,41 +92,39 @@ class ResultsComparator:
             summary = {
                 "dataset": dataset,
                 "method": method,
-                "total_motifs": len(df),
             }
 
-            # Count significant motifs
-            if "significant" in df.columns:
-                summary["significant_motifs"] = df["significant"].sum()
-                summary["pct_significant"] = (
-                    100 * df["significant"].sum() / len(df) if len(df) > 0 else 0
-                )
+            # Schema produced by experiment scripts (v0.2.0):
+            # s, #motifs, avg_n_matches, avg_n_features, median_probability,
+            # median_pvalue, #sig_motifs(≤0.01), significant (percentage),
+            # #sig_hochberg
+            if "#motifs" in df.columns:
+                summary["total_motifs"] = int(df["#motifs"].sum())
 
-            # P-value statistics
-            if "pvalue" in df.columns:
-                pvalues = df["pvalue"].dropna()
-                if len(pvalues) > 0:
-                    summary["mean_pvalue"] = pvalues.mean()
-                    summary["median_pvalue"] = pvalues.median()
-                    summary["min_pvalue"] = pvalues.min()
+            if "#sig_motifs(≤0.01)" in df.columns:
+                summary["significant_motifs"] = int(df["#sig_motifs(≤0.01)"].sum())
+            elif "#sig_hochberg" in df.columns:
+                summary["significant_motifs_hochberg"] = int(df["#sig_hochberg"].sum())
 
-            # Pattern probability statistics
-            if "pattern_probability" in df.columns or "P" in df.columns:
-                prob_col = "pattern_probability" if "pattern_probability" in df.columns else "P"
-                probs = df[prob_col].dropna()
-                if len(probs) > 0:
-                    summary["mean_prob"] = probs.mean()
-                    summary["median_prob"] = probs.median()
+            total_motifs = summary.get("total_motifs", 0)
+            sig = summary.get("significant_motifs", 0)
+            summary["pct_significant"] = (100.0 * sig / total_motifs) if total_motifs else 0.0
 
-            # Motif length statistics
-            if "s" in df.columns:  # s = subsequence length
-                summary["mean_length"] = df["s"].mean()
-                summary["median_length"] = df["s"].median()
+            if "median_pvalue" in df.columns:
+                pv = pd.to_numeric(df["median_pvalue"], errors="coerce").dropna()
+                if len(pv) > 0:
+                    summary["min_median_pvalue"] = float(pv.min())
+                    summary["max_median_pvalue"] = float(pv.max())
 
-            # Dimensionality statistics
-            if "k" in df.columns:  # k = number of variables
-                summary["mean_dims"] = df["k"].mean()
-                summary["median_dims"] = df["k"].median()
+            if "median_probability" in df.columns:
+                mp = pd.to_numeric(df["median_probability"], errors="coerce").dropna()
+                if len(mp) > 0:
+                    summary["min_median_prob"] = float(mp.min())
+                    summary["max_median_prob"] = float(mp.max())
+
+            if "s" in df.columns:
+                summary["min_length"] = int(df["s"].min())
+                summary["max_length"] = int(df["s"].max())
 
             summaries.append(summary)
 
@@ -157,16 +157,17 @@ class ResultsComparator:
 
         comparison = []
         for method, df in method_results.items():
-            if "significant" in df.columns:
-                n_sig = df["significant"].sum()
-                pct_sig = 100 * n_sig / len(df) if len(df) > 0 else 0
+            if "#sig_motifs(≤0.01)" in df.columns and "#motifs" in df.columns:
+                n_sig = int(df["#sig_motifs(≤0.01)"].sum())
+                total = int(df["#motifs"].sum())
+                pct_sig = (100.0 * n_sig / total) if total else 0.0
             else:
-                n_sig = np.nan
-                pct_sig = np.nan
+                n_sig = 0
+                pct_sig = 0.0
 
             comparison.append({
                 "method": method,
-                "total_motifs": len(df),
+                "total_motifs": int(df["#motifs"].sum()) if "#motifs" in df.columns else len(df),
                 "significant_motifs": n_sig,
                 "pct_significant": pct_sig,
             })
@@ -200,16 +201,17 @@ class ResultsComparator:
 
         comparison = []
         for dataset, df in dataset_results.items():
-            if "significant" in df.columns:
-                n_sig = df["significant"].sum()
-                pct_sig = 100 * n_sig / len(df) if len(df) > 0 else 0
+            if "#sig_motifs(≤0.01)" in df.columns and "#motifs" in df.columns:
+                n_sig = int(df["#sig_motifs(≤0.01)"].sum())
+                total = int(df["#motifs"].sum())
+                pct_sig = (100.0 * n_sig / total) if total else 0.0
             else:
-                n_sig = np.nan
-                pct_sig = np.nan
+                n_sig = 0
+                pct_sig = 0.0
 
             comparison.append({
                 "dataset": dataset,
-                "total_motifs": len(df),
+                "total_motifs": int(df["#motifs"].sum()) if "#motifs" in df.columns else len(df),
                 "significant_motifs": n_sig,
                 "pct_significant": pct_sig,
             })
@@ -231,6 +233,7 @@ class ResultsComparator:
             # Header
             f.write("# MSig Experiment Results Comparison\n\n")
             f.write(f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            f.write("> Schema: msig 0.2.0 experiment-script CSV\n\n")
             f.write("---\n\n")
 
             # Overall summary
@@ -270,18 +273,26 @@ class ResultsComparator:
                     continue
 
                 # Basic stats
-                f.write(f"- **Total motifs**: {len(df)}\n")
+                if "#motifs" in df.columns:
+                    f.write(f"- **Total motifs**: {int(df['#motifs'].sum())}\n")
+                else:
+                    f.write(f"- **Total motifs**: {len(df)}\n")
 
-                if "significant" in df.columns:
-                    n_sig = df["significant"].sum()
-                    pct = 100 * n_sig / len(df)
+                if "#sig_motifs(≤0.01)" in df.columns and "#motifs" in df.columns:
+                    n_sig = int(df["#sig_motifs(≤0.01)"].sum())
+                    total = int(df["#motifs"].sum())
+                    pct = (100.0 * n_sig / total) if total else 0.0
                     f.write(f"- **Significant motifs**: {n_sig} ({pct:.1f}%)\n")
 
-                if "pvalue" in df.columns:
-                    pvals = df["pvalue"].dropna()
+                if "median_pvalue" in df.columns:
+                    pvals = pd.to_numeric(df["median_pvalue"], errors="coerce").dropna()
                     if len(pvals) > 0:
-                        f.write(f"- **P-value range**: [{pvals.min():.2e}, {pvals.max():.2e}]\n")
-                        f.write(f"- **Median p-value**: {pvals.median():.2e}\n")
+                        f.write(f"- **Median p-value range**: [{pvals.min():.2e}, {pvals.max():.2e}]\n")
+
+                if "median_probability" in df.columns:
+                    probs = pd.to_numeric(df["median_probability"], errors="coerce").dropna()
+                    if len(probs) > 0:
+                        f.write(f"- **Median probability range**: [{probs.min():.2e}, {probs.max():.2e}]\n")
 
                 if "s" in df.columns:
                     f.write(f"- **Motif length range**: [{df['s'].min()}, {df['s'].max()}]\n")
