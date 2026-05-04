@@ -80,6 +80,14 @@ uv.lock
 *.bak
 .cache/
 
+# Linter / type-checker caches
+.mypy_cache/
+.ruff_cache/
+
+# Numerical artefacts
+*.npz
+*.parquet
+
 # Local-only paper draft (never commit)
 manuscript.tex
 
