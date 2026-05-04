@@ -8,6 +8,7 @@ This module provides shared functionality across all experiment scripts:
 - Common statistical testing workflows
 """
 
+import os
 import sys
 import json
 import logging
@@ -18,6 +19,42 @@ import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
+
+
+def get_dataset_paths(dataset: str) -> dict[str, str]:
+    """
+    Return absolute paths to the input data and results directory for a dataset.
+
+    The function is callable from any experiments/<dataset>/run_*.py script
+    and from the repository root, regardless of cwd.
+
+    Parameters
+    ----------
+    dataset : str
+        One of "audio", "populationdensity", "washingmachine", "synthetic".
+
+    Returns
+    -------
+    dict
+        Keys: "data_dir", "data_file", "results_dir". Values are absolute paths.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.abspath(os.path.join(here, os.pardir))
+    files = {
+        "audio": "imblue.mp3",
+        "populationdensity": "hourly_saodomingosbenfica.csv",
+        "washingmachine": "main_readings.csv",
+        "synthetic": "multivar_time_series.csv",
+    }
+    if dataset not in files:
+        raise ValueError(f"Unknown dataset '{dataset}'; expected one of {list(files)}")
+    data_dir = os.path.join(repo_root, "data", dataset)
+    return {
+        "data_dir": data_dir,
+        "data_file": os.path.join(data_dir, files[dataset]),
+        "results_dir": os.path.join(repo_root, "results", dataset),
+    }
+
 
 # Trivial-match exclusion zone, expressed as a fraction of the motif length s.
 # Paper §3.2 default is 0.25; the published tables (PRL 2026) were generated

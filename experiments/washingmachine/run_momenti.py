@@ -15,6 +15,7 @@ from typing import Tuple
 # Add parent directory to path for msig import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 # Add MOMENTI to path
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -202,9 +203,9 @@ def compute_motif_statistics_momenti(
 
 def main():
     # Paths
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_path = os.path.join(script_dir, "../../data/washingmachine/main_readings.csv")
-    results_dir = os.path.abspath(os.path.join(script_dir, "../results/washingmachine/momenti"))
+    paths = get_dataset_paths("washingmachine")
+    data_path = paths["data_file"]
+    results_dir = os.path.join(paths["results_dir"], "momenti")
     os.makedirs(results_dir, exist_ok=True)
     
     # Load data

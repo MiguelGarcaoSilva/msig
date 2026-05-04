@@ -18,6 +18,7 @@ import math
 import logging
 from typing import List, Dict, Tuple
 from msig import Motif, NullModel, benjamini_hochberg_fdr
+from experiments.common_utils import get_dataset_paths
 
 # Add leitmotifs to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../leitmotifs'))
@@ -497,10 +498,10 @@ def main():
     """
     Main execution: Run LAMA-based motif discovery on audio data.
     """
-    # Configuration - use absolute path based on script location
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    audio_path = os.path.join(script_dir, '../../data/audio/imblue.mp3')
-    output_dir = os.path.join(script_dir, '../../results/audio/lama_iterative')
+    # Configuration
+    paths = get_dataset_paths("audio")
+    audio_path = paths["data_file"]
+    output_dir = os.path.join(paths["results_dir"], "lama_iterative")
     os.makedirs(output_dir, exist_ok=True)
     
     # Load data
