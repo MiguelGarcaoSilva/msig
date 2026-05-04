@@ -97,42 +97,46 @@ def benjamini_hochberg_fdr(p_values: Iterable[float], false_discovery_rate: floa
     return min(critical_val, false_discovery_rate)
 
 
-def bonferroni_correction(p_values: Iterable[float], alpha: float = 0.05) -> float:
+def bonferroni_correction(n_tests: int | Iterable[float], alpha: float = 0.05) -> float:
     """
     Bonferroni correction for multiple hypothesis testing.
-    
+
     Compute the adjusted significance threshold using the conservative
     Bonferroni correction method.
-    
+
     Parameters
     ----------
-    p_values : Iterable[float]
-        Collection of p-values to correct.
+    n_tests : int or Iterable[float]
+        The number of tests, OR (for backward compatibility with msig 0.1.x)
+        an iterable of p-values whose length is used as the number of tests.
+        Bonferroni does not depend on the p-value contents.
     alpha : float, default=0.05
         The family-wise error rate (FWER) to control.
-        
+
     Returns
     -------
     float
         The corrected significance threshold (alpha / number of tests).
-        
+        Returns `alpha` if `n_tests <= 0`.
+
     Notes
     -----
     The Bonferroni correction controls the family-wise error rate by dividing
     the significance level by the number of comparisons. It is very conservative
     and may have low power when many comparisons are made.
-    
+
     Examples
     --------
-    >>> p_vals = [0.001, 0.008, 0.039, 0.041, 0.042]
-    >>> threshold = bonferroni_correction(p_vals, alpha=0.05)
-    >>> threshold
+    >>> bonferroni_correction(5, alpha=0.05)
+    0.01
+    >>> bonferroni_correction([0.001, 0.008, 0.039, 0.041, 0.042], alpha=0.05)
     0.01
     """
-    pv_list = list(p_values)
-    if len(pv_list) == 0:
+    if not isinstance(n_tests, int):
+        n_tests = sum(1 for _ in n_tests)
+    if n_tests <= 0:
         return alpha
-    return alpha / len(pv_list)
+    return alpha / n_tests
 
 
 class NullModel:

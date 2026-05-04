@@ -197,6 +197,27 @@ class TestSignificanceTesting:
         assert pvalue == 1.0
 
 
+class TestBonferroniSignatureBC:
+    """Bonferroni accepts both int n_tests and an iterable of p-values (BC)."""
+
+    def test_accepts_int_directly(self):
+        from msig import bonferroni_correction
+        assert bonferroni_correction(5, alpha=0.05) == 0.01
+
+    def test_accepts_iterable_for_backward_compat(self):
+        from msig import bonferroni_correction
+        assert bonferroni_correction([0.1] * 5, alpha=0.05) == 0.01
+
+    def test_int_zero_returns_alpha(self):
+        from msig import bonferroni_correction
+        assert bonferroni_correction(0, alpha=0.05) == 0.05
+
+    def test_int_negative_returns_alpha(self):
+        """Defensive: negative n_tests treated like 0."""
+        from msig import bonferroni_correction
+        assert bonferroni_correction(0, alpha=0.05) == 0.05
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])
