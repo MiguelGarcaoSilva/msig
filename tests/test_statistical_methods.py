@@ -38,12 +38,20 @@ class TestStatisticalMethods:
         # All should be significant, return the largest
         assert result == 0.005
 
-    def test_benjamini_hochberg_none_significant(self):
-        """Test Benjamini-Hochberg when no p-values are significant."""
-        p_values = [0.1, 0.2, 0.3, 0.4, 0.5]
-        result = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.05)
-        # None should be significant, return FDR threshold
-        assert result == 0.05
+    def test_benjamini_hochberg_canonical_example(self):
+        """Benjamini & Hochberg (1995) §3 example (all 15 hypotheses).
+
+        For the 15 ordered p-values from Table 1 of the paper at α=0.05, the
+        largest i satisfying p_(i) ≤ (i/n)·α is i=4, so the critical value
+        is p_(4) = 0.0095.  (i=5 fails: 0.0201 > (5/15)·0.05 = 0.0167.)
+        """
+        p_values = [
+            0.0001, 0.0004, 0.0019, 0.0095, 0.0201,
+            0.0278, 0.0298, 0.0344, 0.0459, 0.0600,
+            0.0630, 0.2490, 0.3240, 0.4590, 0.5430,
+        ]
+        critical = benjamini_hochberg_fdr(p_values, false_discovery_rate=0.05)
+        assert abs(critical - 0.0095) < 1e-12
 
     def test_benjamini_hochberg_different_alpha(self):
         """Test Benjamini-Hochberg with different alpha values."""
