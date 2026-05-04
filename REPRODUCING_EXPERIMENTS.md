@@ -23,7 +23,7 @@ Place the following files locally; none of them are committed to git
 | Audio (song MFCCs) | `data/audio/imblue.mp3` | Provide your own MP3 of the analysed song |
 | Washing machine | `data/washingmachine/main_readings.csv` | LARCO dataset, [Zenodo DOI 10.5281/zenodo.17081452](https://doi.org/10.5281/zenodo.17081452) |
 | Population density | `data/populationdensity/hourly_saodomingosbenfica.csv` | Vodafone Lisbon mobility data — under NDA. A synthetic alternative: [Kaggle dataset](https://www.kaggle.com/datasets/miguelgarcaosilva/synthetic-mp-data-in-lisbon) |
-| Synthetic | `data/synthetic/multivar_time_series.csv` | Optional; used by paper RQ1 figure |
+| Synthetic | `data/synthetic/multivar_time_series.csv` | Used by paper RQ1 figure. Regenerate with `numpy.random.default_rng(seed=0).uniform(0, 1, size=(1000, 100))` (rows=time, cols=variables). |
 
 ## 3. Running
 
