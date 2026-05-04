@@ -97,5 +97,8 @@ manuscript.tex
 # Git worktrees (created by superpowers:using-git-worktrees)
 .worktrees/
 
+# Internal planning artifacts (never commit)
+docs/superpowers/
+
 
 
