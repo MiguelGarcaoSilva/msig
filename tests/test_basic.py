@@ -192,6 +192,46 @@ class TestEdgeCases:
         assert 0 <= prob <= 1
 
 
+class TestRectangleProbability:
+    """Tests for the private _rect_prob_2d helper."""
+
+    def test_rect_prob_2d_independent_standard_normals(self):
+        """For independent N(0,1)×N(0,1), P(-1≤X≤1, -1≤Y≤1) = (Φ(1)-Φ(-1))²."""
+        from scipy.stats import multivariate_normal, norm
+        from msig.MSig import _rect_prob_2d
+
+        dist = multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]])
+        expected = (norm.cdf(1) - norm.cdf(-1)) ** 2
+        result = _rect_prob_2d(dist, lo=[-1, -1], hi=[1, 1])
+        assert abs(result - expected) < 1e-10
+
+    def test_rect_prob_2d_correlated(self):
+        """Inclusion-exclusion against scipy.stats.multivariate_normal four-corner formula."""
+        from scipy.stats import multivariate_normal
+        from msig.MSig import _rect_prob_2d
+
+        cov = [[1.0, 0.5], [0.5, 1.0]]
+        dist = multivariate_normal(mean=[0, 0], cov=cov)
+        lo, hi = [-0.5, -0.5], [1.0, 1.5]
+        # Reference via the four-corner formula
+        F = lambda x, y: dist.cdf([x, y])
+        expected = F(hi[0], hi[1]) - F(lo[0], hi[1]) - F(hi[0], lo[1]) + F(lo[0], lo[1])
+        result = _rect_prob_2d(dist, lo, hi)
+        assert abs(result - expected) < 1e-10
+
+    def test_rect_prob_2d_clamps_negative_fp_noise(self):
+        """When all four corners are nearly equal, fp arithmetic can produce a tiny
+        negative value; helper must clamp to 0."""
+        from scipy.stats import multivariate_normal
+        from msig.MSig import _rect_prob_2d
+
+        dist = multivariate_normal(mean=[0, 0], cov=[[1, 0], [0, 1]])
+        # Zero-width rectangle
+        result = _rect_prob_2d(dist, lo=[0.5, 0.5], hi=[0.5, 0.5])
+        assert result == 0.0
+        assert result >= 0  # Never negative
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])

@@ -9,6 +9,35 @@ from scipy.stats import norm, binom, gaussian_kde, multivariate_normal
 logger = logging.getLogger(__name__)
 
 
+def _rect_prob_2d(dist, lo, hi) -> float:
+    """
+    Probability of a 2D rectangle [lo[0], hi[0]] × [lo[1], hi[1]] under a 2D distribution.
+
+    Uses the inclusion-exclusion formula for joint CDFs:
+        P([a1,b1]×[a2,b2]) = F(b1,b2) − F(a1,b2) − F(b1,a2) + F(a1,a2)
+
+    Parameters
+    ----------
+    dist : object
+        A 2D distribution exposing a `.cdf(point)` method (e.g.,
+        scipy.stats.multivariate_normal) where `point` is a 2-element sequence.
+    lo : sequence of float
+        Lower corner [a1, a2].
+    hi : sequence of float
+        Upper corner [b1, b2].
+
+    Returns
+    -------
+    float
+        The rectangle probability, clamped to [0, ∞) to absorb floating-point noise.
+    """
+    a1, a2 = lo[0], lo[1]
+    b1, b2 = hi[0], hi[1]
+    p = float(dist.cdf([b1, b2])) - float(dist.cdf([a1, b2])) \
+        - float(dist.cdf([b1, a2])) + float(dist.cdf([a1, a2]))
+    return max(0.0, p)
+
+
 def benjamini_hochberg_fdr(p_values: Iterable[float], false_discovery_rate: float = 0.05) -> float:
     """
     Benjamini-Hochberg FDR correction (standard implementation).
