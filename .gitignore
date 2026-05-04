@@ -43,6 +43,9 @@ env/
 !results/**/metadata.json
 !results/**/.gitkeep
 
+# Per-run experiment logs (regenerated each invocation)
+results/experiment_runs/
+
 # Ignore large binary files and detailed tables
 results/**/*.npy
 results/**/*.pkl
