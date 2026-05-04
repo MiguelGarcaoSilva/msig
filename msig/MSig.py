@@ -529,7 +529,7 @@ class Motif:
     >>> data = np.random.randn(2, 1000)
     >>> null_model = NullModel(data, dtypes=[float, float])
     >>> motif.set_pattern_probability(null_model, vars_indep=True)
-    >>> motif.set_significance(data_length=1000)
+    >>> motif.set_significance(max_possible_matches=998, data_n_variables=2)
     >>> print(f"p-value: {motif.pvalue:.4f}")
     """
     def __init__(
@@ -616,9 +616,15 @@ class Motif:
         data_n_variables : int
             Total number of variables in the original dataset.
         idd_correction : bool, default=False
-            If True, applies IDD (Independent Dimension Discovery) correction by
-            adjusting p-value using the Benjamini-Hochberg FDR procedure across
-            variable subsets. See Notes for details.
+            If True, applies the identically-distributed-dimensions (IDD) correction.
+            When the m variables of the target time series are identically
+            distributed, the same motif could occur in any q-subset of those
+            m variables, so the per-test p-value is multiplied by C(m, q) and
+            capped at 1. See paper Section 3.2 ("Motif's statistical significance").
+
+            Use False (default) when variables differ in distribution, scale,
+            or units (e.g., the case studies in the paper, all of which set
+            idd_correction=False).
         pattern_prob_floor : float or None, default=None
             Optional Laplace-style floor for `self.p_Q` before computing
             the binomial tail. When `self.p_Q == 0` and `pattern_prob_floor`
@@ -635,8 +641,8 @@ class Motif:
         -------
         float
             The computed p-value, also stored in self.pvalue.
-            Returns 0.0 if pattern_probability is 0.0 (deterministic pattern).
-            Returns 1.0 if pattern_probability is 1.0 (completely random).
+            Returns 0.0 if pattern_probability is 0.0 and pattern_prob_floor is None.
+            Returns 1.0 if pattern_probability is 1.0.
             Returns NaN if n_matches >= max_possible_matches (degenerate case).
 
         Raises
@@ -645,18 +651,18 @@ class Motif:
             If max_possible_matches <= 0.
         ValueError
             If data_n_variables <= 0.
-        OverflowError
-            If binomial computation overflows (falls back to manual summation).
 
         Notes
         -----
         The binomial test uses the survival function for numerical stability:
         P(X >= k) = sf(k-1) = 1 - cdf(k-1)
 
-        IDD Correction:
-        When idd_correction=True, the method adjusts for multiple hypothesis testing
-        across different variable subsets. For a motif using k variables from m total,
-        there are C(m,k) possible k-variable subsets.
+        IDD correction:
+        When idd_correction=True, the per-motif p-value is multiplied by C(m, q),
+        where m = data_n_variables and q = len(self.variables). This compensates
+        for the fact that, under the null, an identically-distributed pattern
+        could materialise in any C(m, q) subsets of variables. The product is
+        capped at 1.0.
 
         Examples
         --------
