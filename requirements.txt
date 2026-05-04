@@ -1,15 +1,27 @@
-# MSig Requirements
-# Core package
-msig==0.1.3
+# Convenience requirements file for cloned-from-source contributors.
+# Source of truth is pyproject.toml — `uv sync` or
+# `pip install -e ".[experiments,dev]"` is preferred.
+
+# Core
 numpy>=1.20.0
 scipy>=1.7.0
+tabulate>=0.10.0
 
-# Experiment dependencies
+# Experiments
 pandas>=1.3.0
 matplotlib>=3.4.0
 stumpy>=1.11.0
 librosa>=0.9.0
 statsmodels>=0.13.0
+jinja2>=3.0.0
+leitmotif
+psutil>=5.8.0
+# MOMENTI: Linux/Windows only, install separately:
+# pip install git+https://github.com/aidaLabDEI/MOMENTI-motifs
 
 # Development
 pytest>=7.0.0
+pytest-cov>=3.0.0
+black>=23.0.0
+isort>=5.0.0
+mypy>=1.0.0
