@@ -503,6 +503,74 @@ class TestPatternProbFloor:
         assert a == b
 
 
+class TestSetSignificanceNumerical:
+    """Lock in P(X >= k) = binom.sf(k-1, N, p) so future drift is caught."""
+
+    def test_binomial_tail_exact(self):
+        from scipy.stats import binom
+        import numpy as np
+        from msig import Motif, NullModel
+
+        # Construct a motif with known p_Q via a controlled empirical series.
+        data = np.array([[1.0, 2.0] * 50])  # 100 points, 50 of each
+        model = NullModel(data, dtypes=[float], model="empirical")
+        motif = Motif(np.array([[1.0]]), [0], [0.0], n_matches=10)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+        assert p_Q == 0.5  # 50/100
+
+        N = 80
+        pvalue = motif.set_significance(N, 1, idd_correction=False)
+        expected = float(binom.sf(motif.n_matches - 1, N, p_Q))
+        assert abs(pvalue - expected) < 1e-12
+
+    def test_idd_correction_factor_exact(self):
+        """idd_correction=True multiplies pvalue by C(m,q) capped at 1."""
+        import math
+        import numpy as np
+        from scipy.stats import binom
+        from msig import Motif, NullModel
+
+        data = np.random.RandomState(0).randn(2, 50)
+        model = NullModel(data, dtypes=[float, float], model="empirical")
+        motif = Motif(data[:, 5:8], [0, 1], [0.5, 0.5], n_matches=2)
+        p_Q = motif.set_pattern_probability(model, vars_indep=True)
+
+        N = 45
+        m = 5  # data_n_variables
+        q = 2  # len(motif.variables)
+
+        # Without correction
+        no_idd = Motif(data[:, 5:8], [0, 1], [0.5, 0.5], n_matches=2)
+        no_idd.set_pattern_probability(model, vars_indep=True)
+        p_no = no_idd.set_significance(N, m, idd_correction=False)
+
+        # With correction
+        with_idd = Motif(data[:, 5:8], [0, 1], [0.5, 0.5], n_matches=2)
+        with_idd.set_pattern_probability(model, vars_indep=True)
+        p_with = with_idd.set_significance(N, m, idd_correction=True)
+
+        expected_with = min(1.0, p_no * math.comb(m, q))
+        assert abs(p_with - expected_with) < 1e-12
+
+    def test_idd_correction_q_equals_m_is_identity(self):
+        """When q == m, C(m,m) = 1 => corrected = uncorrected."""
+        import numpy as np
+        from msig import Motif, NullModel
+
+        data = np.random.RandomState(0).randn(3, 50)
+        model = NullModel(data, dtypes=[float, float, float], model="empirical")
+
+        no_idd = Motif(data[:, 5:8], [0, 1, 2], [0.5, 0.5, 0.5], n_matches=2)
+        no_idd.set_pattern_probability(model, vars_indep=True)
+        p_no = no_idd.set_significance(45, 3, idd_correction=False)
+
+        with_idd = Motif(data[:, 5:8], [0, 1, 2], [0.5, 0.5, 0.5], n_matches=2)
+        with_idd.set_pattern_probability(model, vars_indep=True)
+        p_with = with_idd.set_significance(45, 3, idd_correction=True)
+
+        assert p_no == p_with
+
+
 if __name__ == "__main__":
     # Run tests with verbose output
     pytest.main([__file__, "-v"])
