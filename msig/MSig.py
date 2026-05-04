@@ -472,30 +472,27 @@ class NullModel:
     def vars_dep_time_markov(self, motif_subsequence: Sequence[np.ndarray], variables: Sequence[int]) -> float:
         """
         Estimate pattern probability assuming dependent variables and first-order Markov time dependency.
-        
-        This method is not yet implemented. Use vars_indep_time_markov() for the current
-        implementation which assumes variable independence.
-        
-        Parameters
-        ----------
-        motif_subsequence : Sequence[np.ndarray]
-            Sequence of 1D arrays defining the pattern.
-        variables : Sequence[int]
-            Indices of variables in the original data.
-            
+
+        **Not yet implemented.** The corresponding formula in the paper
+        (Silva, Madeira & Henriques, *Pattern Recognition Letters*, 2026,
+        Section 3.1, Eq. (4)) is:
+
+            P_M = P( ⋂_{Y_j ∈ J} Y_j ≈ x_k^j )
+                  · ∏_{i=k+1..k+s} P( ⋂_{Y_j ∈ J} Y_j ≈ x_i^j | Y_j ≈ x_{i-1}^j )
+
+        Implementing this requires multivariate joint and conditional
+        distributions across the selected motif variables. Use
+        ``vars_indep=True`` (default) for the currently supported
+        independent-variables, first-order-Markov-time formulation.
+
         Raises
         ------
         NotImplementedError
-            This method is not yet implemented.
-            
-        Notes
-        -----
-        Future implementation will model dependencies between variables using
-        multivariate distributions rather than treating each variable independently.
+            Always.
         """
         raise NotImplementedError(
-            "Variable dependency modeling is not yet implemented. "
-            "Use vars_indep=True in set_pattern_probability() for the current implementation."
+            "Variable-dependency null modelling (paper Eq. 4) is not yet implemented. "
+            "Use vars_indep=True in set_pattern_probability() for the supported path."
         )
 
 
