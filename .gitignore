@@ -7,6 +7,9 @@ data/synthetic/*
 !data/synthetic/.gitkeep
 data/washingmachine/*
 !data/washingmachine/.gitkeep
+data/keogh_tuna/*
+!data/keogh_tuna/.gitkeep
+!data/keogh_tuna/INVENTORY.md
 
 # Build artifacts
 build/
@@ -53,9 +56,12 @@ results/**/table_motifs_*.csv
 results/**/mp/
 results/**/mp_indices/
 
-# Ignore generated plots and PDFs
+# Ignore generated plots and PDFs (committed assets must use !-exception)
 *.png
 *.pdf
+
+# Showcase figures embedded in the README
+!examples/figures/*.png
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/

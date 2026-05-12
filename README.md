@@ -74,6 +74,24 @@ print(f"Significant at α=0.01? {pvalue <= 0.01}")
 
 See the `examples/` folder for more examples (`simple_example.py` and `example.ipynb`).
 
+## Real-world example: Atlantic Bluefin Tuna
+
+Eamonn Keogh recently asked: *"Can you score motifs for statistical significance? I just make a Pan-Matrix-Profile plot and eyeball it."*
+
+We applied MSig to the multidimensional dusk-dive motif Keogh discovered in ~1.8 years of Atlantic Bluefin Tuna biologging data — 3.81M points, 6 sensor channels, subsequence length 1,280.
+
+![Atlantic Bluefin Tuna biologging dataset — 6 channels × 3.81M points](examples/figures/keogh_tuna_full_series.png)
+
+![Dusk-dive motif: all 6 occurrences overlaid (Light + Depth, s=1,280)](examples/figures/keogh_tuna_motif_top1.png)
+
+![Bluefin Tuna motif scorecard](examples/figures/keogh_tuna_scorecard.png)
+
+Under an empirical null model with conservative independence across channels, the motif tests as significant: P(Q) ≈ 3.4×10⁻⁸⁴; the binomial p-value underflows float64.
+
+**Beyond the top-1.** Other motifs of the same length surface as statistically significant, but they recur on a single channel (*Light Level*) — most likely the daily light cycle, not a distinct multivariate behavior. The notebook walks through the full pipeline.
+
+See [`examples/keogh_tuna_demo.ipynb`](examples/keogh_tuna_demo.ipynb) for the full walkthrough, including the empirical null construction, the FDR correction, and closing caveats on stationarity, the independence assumption, and the discovery-slice scope.
+
 ## Running Experiments
 
 The repository includes case studies on three datasets (audio, population density, washing machine) with three discovery methods (STUMPY, LAMA, MOMENTI).
